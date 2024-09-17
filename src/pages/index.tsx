@@ -1,12 +1,27 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 import Head from "next/head";
 import Link from "next/link";
-
+import { useRouter } from "next/router";
+import { useEffect } from "react";
 import { api } from "~/utils/api";
 
 export default function Home() {
+  const { data: sessionData, status } = useSession();
+  const router = useRouter();
+
+  // Redirect unauthenticated users to login page
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/login");
+    }
+  }, [status, router]);
+
   // Example query - replace with relevant tRPC queries for your HR system
   const hello = api.post.hello.useQuery({ text: "Welcome to HR Admin" });
+
+  if (status === "loading") {
+    return <div>Loading...</div>; // Show loading state while checking session
+  }
 
   return (
     <>
