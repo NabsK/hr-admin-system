@@ -5,11 +5,11 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { api } from "~/utils/api";
 
-export default function Home() {
+export default function EmployeeListView() {
   const { data: sessionData, status } = useSession();
   const router = useRouter();
 
-  // Redirect unauthenticated users to login page
+  // Redirect unauthenticated users to the login page
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/login");
@@ -19,10 +19,12 @@ export default function Home() {
   // Example query - replace with relevant tRPC queries for your HR system
   const hello = api.post.hello.useQuery({ text: "Welcome to HR Admin" });
 
+  // Show loading state while checking session
   if (status === "loading") {
-    return <div>Loading...</div>; // Show loading state while checking session
+    return <div>Loading...</div>;
   }
 
+  // If authenticated, show the main page
   return (
     <>
       <Head>
@@ -67,6 +69,7 @@ export default function Home() {
   );
 }
 
+// Auth showcase component for displaying session info and sign in/sign out buttons
 function AuthShowcase() {
   const { data: sessionData } = useSession();
 

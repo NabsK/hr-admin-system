@@ -15,7 +15,7 @@ export const authOptions: NextAuthOptions = {
       authorize: async (credentials) => {
         // Ensure credentials are provided
         if (!credentials?.email || !credentials?.password) {
-          return null;
+          throw new Error("Invalid credentials provided");
         }
 
         // Fetch the user from the database
@@ -29,7 +29,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Return null if authentication fails
-        return null;
+        throw new Error("Invalid email or password");
       },
     }),
   ],
@@ -37,7 +37,7 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt", // Use JWT for session strategy
   },
   jwt: {
-    secret: process.env.JWT_SECRET, // Ensure you have a JWT secret in your .env file
+    secret: process.env.NEXTAUTH_SECRET, // Ensure you have a JWT secret in your .env file
   },
   callbacks: {
     async session({ session, token }) {
@@ -57,6 +57,10 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
+  },
+  pages: {
+    signIn: "/auth/login", // Custom sign-in page
+    error: "/auth/error", // Custom error page
   },
 };
 
