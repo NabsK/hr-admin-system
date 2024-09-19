@@ -9,6 +9,7 @@ import { type Adapter } from "next-auth/adapters";
 
 import { env } from "~/env";
 import { db } from "~/server/db";
+import { Role } from "~/utils/role"; // Make sure to import this
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -19,14 +20,14 @@ import { db } from "~/server/db";
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: DefaultSession["user"] & {
-      id: string;
-      role: string; // Add role to session
+      id: number;
+      role: Role;
     };
   }
 
   interface User {
-    id: string;
-    role: string; // Add role to user
+    id: number;
+    role: Role;
   }
 }
 
@@ -38,20 +39,43 @@ declare module "next-auth" {
 export const authOptions: NextAuthOptions = {
   callbacks: {
     async session({ session, user }) {
-      const userFromDb = await db.user.findUnique({ where: { id: user.id } });
+      const employeeFromDb = await db.employee.findUnique({
+        where: { id: user.id },
+        select: {
+          id: true,
+          role: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+        },
+      });
+
+      if (!employeeFromDb) {
+        throw new Error("User not found in the database");
+      }
+
       return {
         ...session,
         user: {
-          ...session.user,
-          id: user.id,
-          role: userFromDb?.role || "EMPLOYEE", // Default to "EMPLOYEE" if role is not found
+          id: employeeFromDb.id,
+          role: employeeFromDb.role,
+          email: employeeFromDb.email,
+          name: `${employeeFromDb.firstName} ${employeeFromDb.lastName}`,
         },
       };
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+      }
+      return token;
     },
   },
   adapter: PrismaAdapter(db) as Adapter,
   providers: [
     // Add more providers here if needed
+    // For example, you might want to add a CredentialsProvider for email/password login
   ],
 };
 

@@ -1,10 +1,8 @@
-// components/forms/LoginForm.tsx
-
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 
-const LoginForm = ({ csrfToken }: { csrfToken: string }) => {
+const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -12,29 +10,32 @@ const LoginForm = ({ csrfToken }: { csrfToken: string }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
 
-    // Perform sign-in using next-auth signIn method
-    const result = await signIn("credentials", {
-      redirect: false, // We handle the redirect manually
-      email,
-      password,
-      csrfToken, // Add the CSRF token to the sign-in request
-    });
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
 
-    if (result?.error) {
-      // If sign-in fails, show the error
-      setError(result.error);
-    } else {
-      // Redirect to employees page after successful login
-      router.push("/employees");
+      console.log("Sign-in result:", result);
+
+      if (result?.error) {
+        setError(result.error);
+      } else if (result?.ok) {
+        console.log("Sign-in successful, redirecting...");
+        router.push("/employees");
+      }
+    } catch (err) {
+      console.error("Sign-in error:", err);
+      setError("An unexpected error occurred. Please try again.");
     }
   };
 
   return (
     <form onSubmit={handleSubmit}>
       {error && <p className="text-red-500">{error}</p>}
-      <input name="csrfToken" type="hidden" defaultValue={csrfToken} />{" "}
-      {/* CSRF Token */}
       <div>
         <label
           htmlFor="email"

@@ -1,29 +1,35 @@
-// pages/employees/index.tsx
-
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { api } from "~/utils/api";
-import { Employee } from "~/types/employee"; // Import the Employee type
+import { Employee } from "~/types/employee";
 
 const EmployeeListView = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [employees, setEmployees] = useState<Employee[]>([]); // Use Employee type
+  const [employees, setEmployees] = useState<Employee[]>([]);
 
-  // Redirect to login if not authenticated
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/login");
     }
   }, [status, router]);
 
-  // Fetch employees using the API query
-  const { data, error, isLoading } = api.employee.getAll.useQuery();
+  useEffect(() => {
+    console.log("Current session:", session);
+    console.log("Authentication status:", status);
+  }, [session, status]);
+
+  const { data, error, isLoading } = api.employee.getAll.useQuery(undefined, {
+    enabled: status === "authenticated",
+    onError: (error) => {
+      console.error("Error fetching employees:", error);
+    },
+  });
 
   useEffect(() => {
     if (data) {
-      // Convert id and manager.id to string
+      console.log("Received employee data:", data);
       const convertedData = data.map((employee) => ({
         ...employee,
         id: employee.id.toString(),
@@ -35,7 +41,6 @@ const EmployeeListView = () => {
     }
   }, [data]);
 
-  // Handle loading and error states
   if (status === "loading" || isLoading) return <p>Loading...</p>;
   if (error) return <p>Error fetching employees: {error.message}</p>;
 
