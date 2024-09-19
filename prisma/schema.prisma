@@ -7,34 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Necessary for NextAuth.js
-model Account {
-  id                       String  @id @default(cuid())
-  userId                   String
-  type                     String
-  provider                 String
-  providerAccountId        String
-  refresh_token            String?
-  access_token             String?
-  expires_at               Int?
-  token_type               String?
-  scope                    String?
-  id_token                 String?
-  session_state            String?
-  refresh_token_expires_in Int?
-  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -42,53 +14,64 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?   // Ensure this field is present
+  role          String    @default("EMPLOYEE") // Add role field
   accounts      Account[]
   sessions      Session[]
   employee      Employee?
   posts         Post[]
 }
 
-// Custom models for the HR system
 model Employee {
-  id        Int       @id @default(autoincrement())
-  firstName String
-  lastName  String
-  phone     String
-  email     String   @unique
-  manager   Employee? @relation("EmployeeManager", fields: [managerId], references: [id])
-  subordinates Employee[] @relation("EmployeeManager") // Inverse relation for self-reference
-  managerId Int?
-  status    String
-
-  departments Department[] @relation("EmployeeDepartments") // Remove references
-
-  userId     String?  @unique
-  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             Int       @id @default(autoincrement())
+  firstName      String
+  lastName       String
+  telephone      String
+  email          String    @unique
+  managerId      Int?
+  manager        Employee? @relation("EmployeeManager", fields: [managerId], references: [id])
+  subordinates   Employee[] @relation("EmployeeManager")
+  status         String
+  userId         String    @unique // Add @unique attribute
+  user           User      @relation(fields: [userId], references: [id])
+  departments    Department[] @relation("EmployeeDepartments")
 }
 
 model Department {
-  id        Int       @id @default(autoincrement())
-  name      String
-  status    String
-  employees Employee[] @relation("EmployeeDepartments") // Remove references
+  id             Int       @id @default(autoincrement())
+  name           String
+  status         String
+  employees      Employee[] @relation("EmployeeDepartments")
 }
 
-// Post model retained for reference/example purposes, can be removed if unnecessary
+model Account {
+  id                 Int       @id @default(autoincrement())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+  user               User      @relation(fields: [userId], references: [id])
+}
+
+model Session {
+  id                 Int       @id @default(autoincrement())
+  sessionToken       String    @unique
+  userId             String
+  expires            DateTime
+  user               User      @relation(fields: [userId], references: [id])
+}
+
 model Post {
-  id        Int      @id @default(autoincrement())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  createdBy User     @relation(fields: [createdById], references: [id])
-  createdById String
-
-  @@index([name])
-}
-
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
+  id                 Int       @id @default(autoincrement())
+  name               String
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  userId             String
+  user               User      @relation(fields: [userId], references: [id])
 }

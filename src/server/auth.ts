@@ -20,15 +20,14 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: DefaultSession["user"] & {
       id: string;
-      // ...other properties
-      // role: UserRole;
+      role: string; // Add role to session
     };
   }
 
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
+  interface User {
+    id: string;
+    role: string; // Add role to user
+  }
 }
 
 /**
@@ -38,13 +37,17 @@ declare module "next-auth" {
  */
 export const authOptions: NextAuthOptions = {
   callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
+    async session({ session, user }) {
+      const userFromDb = await db.user.findUnique({ where: { id: user.id } });
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: user.id,
+          role: userFromDb?.role || "EMPLOYEE", // Default to "EMPLOYEE" if role is not found
+        },
+      };
+    },
   },
   adapter: PrismaAdapter(db) as Adapter,
   providers: [
