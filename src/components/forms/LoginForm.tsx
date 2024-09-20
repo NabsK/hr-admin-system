@@ -25,7 +25,7 @@ const LoginForm = () => {
         setError(result.error);
       } else if (result?.ok) {
         console.log("Sign-in successful, redirecting...");
-        router.push("/employees");
+        router.push("/employees/EmployeeList");
       }
     } catch (err) {
       console.error("Sign-in error:", err);
