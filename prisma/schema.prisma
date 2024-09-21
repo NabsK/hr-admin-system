@@ -17,13 +17,21 @@ model Employee {
   role           Int
   managerId      Int?
   status         Boolean
-  departments    Department[] @relation("EmployeeDepartments")
+  departments    EmployeeDepartment[]
 }
 
 model Department {
   id             Int       @id @default(autoincrement())
   name           String
   status         String
-  employees      Employee[]  @relation("EmployeeDepartments")
+  employees      EmployeeDepartment[]
+}
 
+model EmployeeDepartment {
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  employeeId Int
+  department Department @relation(fields: [departmentId], references: [id])
+  departmentId Int
+
+  @@id([employeeId, departmentId]) // Composite primary key to prevent duplicates
 }

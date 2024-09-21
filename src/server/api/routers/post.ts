@@ -6,7 +6,7 @@ export const postRouter = createTRPCRouter({
     .input(z.object({ text: z.string().optional() }))
     .query(({ input }) => {
       return {
-        greeting: `Hello ${input?.text ?? "world"}`,
+        greeting: ` ${input?.text ?? "world"}`,
       };
     }),
   // Add other procedures here

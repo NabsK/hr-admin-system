@@ -17,7 +17,9 @@ export default function EmployeeListView() {
   }, [status, router]);
 
   // Example query - replace with relevant tRPC queries for your HR system
-  const hello = api.post.hello.useQuery({ text: "Welcome to HR Admin" });
+  const hello = api.post.hello.useQuery({
+    text: "Welcome to the HR Administration System",
+  });
 
   // Show loading state while checking session
   if (status === "loading") {
@@ -35,11 +37,10 @@ export default function EmployeeListView() {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]">
+      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#1aa3ff] to-[#404040]">
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
           <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
-            HR <span className="text-[hsl(280,100%,70%)]">Administration</span>{" "}
-            System
+            HR Administration System
           </h1>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
             <Link

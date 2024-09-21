@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { api } from "~/utils/api";
 import { Employee } from "~/types/employee";
 import Menu from "~/components/Menu";
+import { Edit } from "lucide-react";
+import Link from "next/link";
 
 const EmployeeListView = () => {
   const { data: session, status } = useSession();
@@ -33,7 +35,7 @@ const EmployeeListView = () => {
       console.log("Received employee data:", data);
       const convertedData = data.map((employee) => ({
         ...employee,
-        id: employee.id.toString(),
+        id: employee.id,
         manager: employee.manager
           ? { ...employee.manager, id: employee.manager.id.toString() }
           : null,
@@ -42,8 +44,39 @@ const EmployeeListView = () => {
     }
   }, [data]);
 
+  const toggleStatus = api.employee.toggleActivationStatus.useMutation({
+    onSuccess: (data, variables) => {
+      // Ensure variables.id is available
+      setEmployees((prevEmployees) =>
+        prevEmployees.map((employee) =>
+          employee.id === variables.id
+            ? { ...employee, status: !employee.status } // Toggle status locally
+            : employee,
+        ),
+      );
+    },
+    onError: (error) => {
+      console.error("Error toggling employee status:", error);
+    },
+  });
+
+  const handleToggleStatus = async (
+    employeeId: number,
+    currentStatus: boolean,
+  ) => {
+    const action = currentStatus ? "Deactivate" : "Activate";
+    try {
+      await toggleStatus.mutateAsync({ id: employeeId, action });
+    } catch (error) {
+      console.error("Failed to toggle status:", error);
+    }
+  };
+
   if (status === "loading" || isLoading) return <p>Loading...</p>;
   if (error) return <p>Error fetching employees: {error.message}</p>;
+
+  // Check if the user is a Super User
+  const isSuperUser = session?.user?.role === 0;
 
   return (
     <div className="flex">
@@ -157,12 +190,29 @@ const EmployeeListView = () => {
                 employees.map((employee) => (
                   <tr key={employee.id}>
                     <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
-                      <button className="text-blue-600 hover:underline">
-                        Edit
-                      </button>
-                      <button className="ml-2 text-red-600 hover:underline">
-                        Deactivate
-                      </button>
+                      <div className="flex items-center space-x-4">
+                        <Link
+                          href={`/employees/EmployeeCreateEdit?id=${employee.id}`}
+                          className="flex items-center text-blue-600 hover:underline"
+                        >
+                          <Edit size={18} className="mr-1" />
+                          Edit
+                        </Link>
+                        {isSuperUser && (
+                          <button
+                            className={`font-medium ${
+                              employee.status
+                                ? "text-red-600 hover:text-red-800"
+                                : "text-green-600 hover:text-green-800"
+                            } hover:underline`}
+                            onClick={() =>
+                              handleToggleStatus(employee.id, employee.status)
+                            }
+                          >
+                            {employee.status ? "Deactivate" : "Activate"}
+                          </button>
+                        )}
+                      </div>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm">
                       {employee.firstName}
@@ -171,7 +221,7 @@ const EmployeeListView = () => {
                       {employee.lastName}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm">
-                      {employee.telephoneNumber || "N/A"}
+                      {employee.telephone || "N/A"}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm">
                       {employee.email}
@@ -180,7 +230,13 @@ const EmployeeListView = () => {
                       {employee.manager?.firstName} {employee.manager?.lastName}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm">
-                      {employee.status}
+                      <span
+                        className={`font-medium ${
+                          employee.status ? "text-green-600" : "text-red-600"
+                        }`}
+                      >
+                        {employee.status ? "Active" : "Inactive"}
+                      </span>
                     </td>
                   </tr>
                 ))

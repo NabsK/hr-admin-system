@@ -75,4 +75,44 @@ export const departmentRouter = createTRPCRouter({
       include: { employees: true },
     });
   }),
+
+  toggleActivationStatus: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(), // Employee ID
+        action: z.enum(["Activate", "Deactivate"]), // Accept either "Activate" or "Deactivate"
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const department = await ctx.prisma.department.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!department) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Department not found",
+        });
+      }
+
+      // Only super users can change the activation status of employees
+      if (ctx.user.role !== 0) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only Super Users can activate or deactivate departments",
+        });
+      }
+
+      // Determine the new status based on the action
+      const newStatus = input.action === "Activate" ? true : false;
+
+      const updatedEmployee = await ctx.prisma.department.update({
+        where: { id: input.id },
+        data: {
+          status: newStatus, // Set status based on the input action
+        },
+      });
+
+      return updatedEmployee;
+    }),
 });

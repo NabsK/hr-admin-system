@@ -1,14 +1,21 @@
 // src/types/employee.ts
 
+import { Department } from "./department";
+
 export interface Employee {
-  id: string;
+  id: number;
   firstName: string;
   lastName: string;
+  telephone: string;
   email: string;
-  status: string;
+  role: number;
+  managerId: number | null;
+  status: boolean;
+  departments: Department[];
   manager: {
-    id: string;
+    id: number;
     firstName: string;
-    lastName: string;
+    lastName: true;
+    email: string;
   } | null;
 }
