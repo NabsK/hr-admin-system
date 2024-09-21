@@ -8,13 +8,24 @@ const EmployeeCreate = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const [employee, setEmployee] = useState({
+  const [employee, setEmployee] = useState<{
+    firstName: string;
+    lastName: string;
+    telephone: string;
+    email: string;
+    managerId: number | null; // Use null to allow no selection
+    status: boolean;
+    role: number;
+    departmentIds: number[];
+  }>({
     firstName: "",
     lastName: "",
     telephone: "",
     email: "",
-    managerId: "",
+    managerId: null, // Default to null
     status: true,
+    role: 2,
+    departmentIds: [],
   });
 
   const [managers, setManagers] = useState([]);
@@ -31,26 +42,34 @@ const EmployeeCreate = () => {
     },
     onError: (error) => {
       console.error("Error creating employee:", error);
-      // Handle error (e.g., show error message to user)
     },
   });
 
-  const { data: managersData } = api.employee.getManagers.useQuery(undefined, {
-    enabled: status === "authenticated",
-    onSuccess: (data) => {
-      setManagers(data);
-    },
-  });
-
-  const handleInputChange = (e) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
+
+    // Convert value to number for managerId
+    const newValue = name === "managerId" ? Number(value) : value;
+
     setEmployee((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: newValue,
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleDepartmentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedIds = Array.from(e.target.selectedOptions, (option) =>
+      Number(option.value),
+    );
+    setEmployee((prev) => ({
+      ...prev,
+      departmentIds: selectedIds,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       await createEmployee.mutateAsync(employee);
@@ -142,17 +161,31 @@ const EmployeeCreate = () => {
             <select
               id="managerId"
               name="managerId"
-              value={employee.managerId}
+              value={employee.managerId ?? ""}
               onChange={handleInputChange}
               required
               className="w-full rounded-md border border-gray-300 p-2"
             >
               <option value="">- Select -</option>
-              {managers.map((manager) => (
-                <option key={manager.id} value={manager.id}>
-                  {manager.firstName} {manager.lastName}
-                </option>
-              ))}
+              <option value="2">- Bob -</option>
+              <option value="3">- Steve -</option>
+            </select>
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="departmentIds" className="mb-2 block font-bold">
+              *Departments
+            </label>
+            <select
+              id="departmentIds"
+              name="departmentIds"
+              multiple
+              onChange={handleDepartmentChange}
+              className="w-full rounded-md border border-gray-300 p-2"
+            >
+              <option value="1">Department 1</option>
+              <option value="2">Department 2</option>
+              <option value="3">Department 3</option>
             </select>
           </div>
 

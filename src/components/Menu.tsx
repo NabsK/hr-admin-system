@@ -1,11 +1,19 @@
 import React, { useState } from "react";
 import { Menu as MenuIcon, X } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
 
 const Menu = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { data: session } = useSession();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const isSuperUser = session?.user?.role === 0;
+
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: "/" });
   };
 
   return (
@@ -17,7 +25,6 @@ const Menu = () => {
       >
         {isMenuOpen ? <X size={24} /> : <MenuIcon size={24} />}
       </button>
-
       {/* Menu Content */}
       <div
         className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-sky-600 p-4 text-white transition-transform duration-300 ease-in-out ${
@@ -31,24 +38,41 @@ const Menu = () => {
               Employee List
             </a>
           </li>
-          <li className="mb-4">
-            <a href="/employees/EmployeeCreate" className="hover:underline">
-              Employee Create
-            </a>
-          </li>
+          {isSuperUser && (
+            <li className="mb-4">
+              <a href="/employees/EmployeeCreate" className="hover:underline">
+                Employee Create
+              </a>
+            </li>
+          )}
           <li className="mb-4">
             <a href="/Department/DepartmentList" className="hover:underline">
               Department List
             </a>
           </li>
-          <li className="mb-4">
-            <a href="/Department/DepartmentCreate" className="hover:underline">
-              Department Create
-            </a>
-          </li>
+          {isSuperUser && (
+            <li className="mb-4">
+              <a
+                href="/Department/DepartmentCreate"
+                className="hover:underline"
+              >
+                Department Create
+              </a>
+            </li>
+          )}
         </ul>
-      </div>
 
+        {/* Sign Out Button */}
+        <div className="mt-auto pt-4">
+          <button
+            onClick={handleSignOut}
+            className="w-full rounded-md bg-transparent py-2 text-red-600 transition-colors hover:text-white"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+      in tail
       {/* Overlay */}
       {isMenuOpen && (
         <div

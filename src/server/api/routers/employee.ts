@@ -303,4 +303,41 @@ export const employeeRouter = createTRPCRouter({
       // Return full name as a single string
       return `${employee.firstName} ${employee.lastName}`;
     }),
+
+  create: protectedProcedure
+    .input(
+      z.object({
+        firstName: z.string(),
+        lastName: z.string(),
+        telephone: z.string(),
+        email: z.string().email(),
+        role: z.number().min(0).max(2),
+        managerId: z.number().nullable(), // Allow null values for optional selection
+        status: z.boolean().optional(),
+        departments: z.array(z.number()),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const employeeData = {
+        ...input,
+        status: input.status !== undefined ? input.status : true,
+        password: "Password123#", // Default password
+        departments: {
+          connect: input.departments.map((id) => ({ id })),
+        },
+      };
+
+      if (ctx.user.role !== 0) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only Super Users can create employees",
+        });
+      }
+
+      const employee = await ctx.prisma.employee.create({
+        data: employeeData,
+      });
+
+      return employee;
+    }),
 });
