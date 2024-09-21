@@ -192,7 +192,7 @@ const EmployeeListView = () => {
                     <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
                       <div className="flex items-center space-x-4">
                         <Link
-                          href={`/employees/EmployeeCreateEdit?id=${employee.id}`}
+                          href={`/employees/EmployeeEdit?id=${employee.id}`}
                           className="flex items-center text-blue-600 hover:underline"
                         >
                           <Edit size={18} className="mr-1" />

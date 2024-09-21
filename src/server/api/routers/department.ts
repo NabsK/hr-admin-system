@@ -79,7 +79,7 @@ export const departmentRouter = createTRPCRouter({
   toggleActivationStatus: protectedProcedure
     .input(
       z.object({
-        id: z.number(), // Employee ID
+        id: z.number(), // Department ID
         action: z.enum(["Activate", "Deactivate"]), // Accept either "Activate" or "Deactivate"
       }),
     )
@@ -104,7 +104,7 @@ export const departmentRouter = createTRPCRouter({
       }
 
       // Determine the new status based on the action
-      const newStatus = input.action === "Activate" ? true : false;
+      const newStatus = input.action === "Activate" ? "1" : "0";
 
       const updatedEmployee = await ctx.prisma.department.update({
         where: { id: input.id },
@@ -114,5 +114,25 @@ export const departmentRouter = createTRPCRouter({
       });
 
       return updatedEmployee;
+    }),
+
+  getById: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const department = await ctx.prisma.department.findUnique({
+        where: { id: input.id },
+        include: {
+          employees: true,
+        },
+      });
+
+      if (!department) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Department not found",
+        });
+      }
+
+      return department;
     }),
 });

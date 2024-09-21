@@ -38,8 +38,40 @@ const DepartmentListView = () => {
     }
   }, [data]);
 
+  const toggleStatus = api.department.toggleActivationStatus.useMutation({
+    onSuccess: (data, variables) => {
+      setDepartments((prevDepartments) =>
+        prevDepartments.map((department) =>
+          department.id === variables.id.toString()
+            ? {
+                ...department,
+                status: variables.action === "Activate" ? "1" : "0",
+              }
+            : department,
+        ),
+      );
+    },
+    onError: (error) => {
+      console.error("Error toggling department status:", error);
+    },
+  });
+
+  const handleToggleStatus = async (
+    departmentId: string,
+    currentStatus: string,
+  ) => {
+    const action = currentStatus === "1" ? "Deactivate" : "Activate";
+    try {
+      await toggleStatus.mutateAsync({ id: Number(departmentId), action });
+    } catch (error) {
+      console.error("Failed to toggle status:", error);
+    }
+  };
+
   if (status === "loading" || isLoading) return <p>Loading...</p>;
   if (error) return <p>Error fetching departments: {error.message}</p>;
+
+  const isSuperUser = session?.user?.role === 0;
 
   return (
     <div className="flex">
@@ -55,7 +87,7 @@ const DepartmentListView = () => {
         </div>
 
         {/* Title */}
-        <h2 className="mt-6 text-xl font-semibold">Departments</h2>
+        <h2 className="mt-6 text-xl font-semibold">Departments List</h2>
 
         {/* Filters Section */}
         <div className="mt-4 rounded-md border p-4">
@@ -132,16 +164,34 @@ const DepartmentListView = () => {
                 departments.map((department) => (
                   <tr key={department.id}>
                     <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
-                      <Link
-                        href={`/Department/DepartmentCreateEdit?id=${department.id}`}
-                        className="flex items-center text-blue-600 hover:underline"
-                      >
-                        <Edit size={18} className="mr-1" />
-                        Edit
-                      </Link>
-                      <button className="ml-2 text-red-600 hover:underline">
-                        {department.status ? "Deactivate" : "Activate"}
-                      </button>
+                      <div className="flex items-center space-x-4">
+                        <Link
+                          href={`/Department/DepartmentEdit?id=${department.id}`}
+                          className="flex items-center text-blue-600 hover:underline"
+                        >
+                          <Edit size={18} className="mr-1" />
+                          Edit
+                        </Link>
+                        {isSuperUser && (
+                          <button
+                            className={`font-medium ${
+                              department.status
+                                ? "text-red-600 hover:text-red-800"
+                                : "text-green-600 hover:text-green-800"
+                            } hover:underline`}
+                            onClick={() =>
+                              handleToggleStatus(
+                                department.id,
+                                department.status,
+                              )
+                            }
+                          >
+                            {department.status === "1"
+                              ? "Deactivate"
+                              : "Activate"}
+                          </button>
+                        )}
+                      </div>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm">
                       {department.name}
@@ -151,7 +201,15 @@ const DepartmentListView = () => {
                       {department.manager?.lastName}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm">
-                      {department.status ? "Active" : "Inactive"}
+                      <span
+                        className={`font-medium ${
+                          department.status === "1"
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {department.status === "1" ? "Active" : "Inactive"}
+                      </span>
                     </td>
                   </tr>
                 ))

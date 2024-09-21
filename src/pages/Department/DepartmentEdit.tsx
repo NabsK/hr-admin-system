@@ -6,16 +6,14 @@ import { Department } from "~/types/department";
 import { Employee } from "~/types/employee";
 import Menu from "~/components/Menu";
 
-const DepartmentCreateEdit = () => {
+const DepartmentEdit = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { id } = router.query;
-  const isEditing = !!id;
 
   const [department, setDepartment] = useState<Partial<Department>>({
     name: "",
-    managerId: "",
-    status: true,
+    status: "1", // Default to active
   });
 
   useEffect(() => {
@@ -26,16 +24,21 @@ const DepartmentCreateEdit = () => {
 
   const { data: departmentData, isLoading: isDepartmentLoading } =
     api.department.getById.useQuery(
-      { id: id as string },
-      { enabled: isEditing && status === "authenticated" },
+      { id: parseInt(id as string) },
+      {
+        enabled: !!id && status === "authenticated",
+      },
     );
-
   useEffect(() => {
     if (departmentData) {
-      setDepartment(departmentData);
+      setDepartment({
+        name: departmentData.name,
+        status: departmentData.status,
+      });
     }
   }, [departmentData]);
 
+  console.log(department);
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
@@ -46,14 +49,13 @@ const DepartmentCreateEdit = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (isEditing) {
-        await api.department.update.mutate({ id: id as string, ...department });
-      } else {
-        await api.department.create.mutate(department);
-      }
+      await api.department.update.mutateAsync({
+        id: parseInt(id as string),
+        ...department,
+      });
       router.push("/departments");
     } catch (error) {
-      console.error("Error saving department:", error);
+      console.error("Error updating department:", error);
     }
   };
 
@@ -61,23 +63,15 @@ const DepartmentCreateEdit = () => {
 
   return (
     <div className="flex">
-      {/* Left Menu */}
       <Menu />
-
-      {/* Main Content */}
       <div className="container mx-auto flex-1 py-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">HR Administration System</h1>
           <button className="block text-2xl md:hidden">&#9776;</button>
         </div>
 
-        {/* Title */}
-        <h2 className="mt-6 text-xl font-semibold">
-          {isEditing ? "Edit Department" : "Create Department"}
-        </h2>
+        <h2 className="mt-6 text-xl font-semibold">Edit Department</h2>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="mt-6 max-w-lg">
           <div className="mb-4">
             <label htmlFor="name" className="mb-2 block font-bold">
@@ -101,7 +95,6 @@ const DepartmentCreateEdit = () => {
             <select
               id="managerId"
               name="managerId"
-              value={department.managerId}
               onChange={handleInputChange}
               required
               className="w-full rounded-md border border-gray-300 p-2"
@@ -110,30 +103,22 @@ const DepartmentCreateEdit = () => {
             </select>
           </div>
 
-          {isEditing && (
-            <div className="mb-4">
-              <label htmlFor="status" className="mb-2 block font-bold">
-                *Status
-              </label>
-              <select
-                id="status"
-                name="status"
-                value={department.status ? "Active" : "Inactive"}
-                onChange={(e) =>
-                  setDepartment((prev) => ({
-                    ...prev,
-                    status: e.target.value === "Active",
-                  }))
-                }
-                required
-                className="w-full rounded-md border border-gray-300 p-2"
-              >
-                <option value="">- Select -</option>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </div>
-          )}
+          <div className="mb-4">
+            <label htmlFor="status" className="mb-2 block font-bold">
+              *Status
+            </label>
+            <select
+              id="status"
+              name="status"
+              value={department.status}
+              onChange={handleInputChange}
+              required
+              className="w-full rounded-md border border-gray-300 p-2"
+            >
+              <option value="1">Active</option>
+              <option value="0">Inactive</option>
+            </select>
+          </div>
 
           <div className="mt-6 flex justify-end space-x-4">
             <button
@@ -144,7 +129,7 @@ const DepartmentCreateEdit = () => {
             </button>
             <button
               type="button"
-              onClick={() => router.push("/departments")}
+              onClick={() => router.push("/Department/DepartmentList")}
               className="rounded bg-gray-300 px-4 py-2 font-bold text-gray-700 hover:bg-gray-400"
             >
               Cancel
@@ -156,4 +141,4 @@ const DepartmentCreateEdit = () => {
   );
 };
 
-export default DepartmentCreateEdit;
+export default DepartmentEdit;

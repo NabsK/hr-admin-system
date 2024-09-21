@@ -32,8 +32,8 @@ const Menu = () => {
             </a>
           </li>
           <li className="mb-4">
-            <a href="/employees/EmployeeCreateEdit" className="hover:underline">
-              Employee Create/Edit
+            <a href="/employees/EmployeeCreate" className="hover:underline">
+              Employee Create
             </a>
           </li>
           <li className="mb-4">
@@ -42,11 +42,8 @@ const Menu = () => {
             </a>
           </li>
           <li className="mb-4">
-            <a
-              href="/Department/DepartmentCreateEdit"
-              className="hover:underline"
-            >
-              Department Create/Edit
+            <a href="/Department/DepartmentCreate" className="hover:underline">
+              Department Create
             </a>
           </li>
         </ul>
