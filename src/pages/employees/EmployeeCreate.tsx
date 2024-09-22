@@ -3,6 +3,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 import Menu from "~/components/Menu";
+import { FilePlus, X } from "lucide-react";
 
 const EmployeeCreate = () => {
   const { data: session, status } = useSession();
@@ -105,17 +106,17 @@ const EmployeeCreate = () => {
     return <p>Loading...</p>;
 
   return (
-    <div className="flex">
+    <div className="flex min-h-screen items-center justify-center">
       <Menu />
       <div className="container mx-auto flex-1 py-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">HR Administration System</h1>
-          <button className="block text-2xl md:hidden">&#9776;</button>
-        </div>
+        <h1 className="text-center text-2xl font-bold">
+          HR Administration System
+        </h1>
+        <h2 className="mt-6 text-center text-xl font-semibold">
+          Create Employee
+        </h2>
 
-        <h2 className="mt-6 text-xl font-semibold">Create Employee</h2>
-
-        <form onSubmit={handleSubmit} className="mt-6 max-w-lg">
+        <form onSubmit={handleSubmit} className="mx-auto mt-6 max-w-lg">
           <div className="mb-4">
             <label htmlFor="firstName" className="mb-2 block font-bold">
               *First Name
@@ -200,7 +201,7 @@ const EmployeeCreate = () => {
           </div>
 
           <div className="mb-4">
-            <label htmlFor="departmentIds" className="mb-2 block font-bold">
+            <label htmlFor="departmentId" className="mb-2 block font-bold">
               *Departments
             </label>
             <select
@@ -220,18 +221,20 @@ const EmployeeCreate = () => {
             </select>
           </div>
 
-          <div className="mt-6 flex justify-end space-x-4">
+          <div className="mt-6 flex justify-center space-x-4">
             <button
               type="submit"
-              className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-600"
+              className="flex items-center rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-600"
             >
+              <FilePlus size={18} className="mr-1" />
               Create
             </button>
             <button
               type="button"
               onClick={() => router.push("/employees/EmployeeList")}
-              className="rounded bg-gray-300 px-4 py-2 font-bold text-gray-700 hover:bg-gray-400"
+              className="flex items-center rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-600"
             >
+              <X size={18} className="mr-1" />
               Cancel
             </button>
           </div>

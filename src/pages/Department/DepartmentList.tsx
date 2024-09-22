@@ -159,19 +159,22 @@ const DepartmentListView = () => {
       {/* Main Content */}
       <div className="container mx-auto flex-1 py-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">HR Administration System</h1>
-          <button className="block text-2xl md:hidden">&#9776;</button>
+        <div className="flex items-center justify-center">
+          <h1 className="text-center text-2xl font-bold">
+            HR Administration System
+          </h1>
         </div>
 
         {/* Title */}
-        <h2 className="mt-6 text-xl font-semibold">Departments List</h2>
+        <h2 className="mt-6 text-center text-xl font-semibold">
+          Departments List
+        </h2>
 
         {/* Filters Section */}
         <div className="mt-4 rounded-md border p-4">
           <h3 className="font-semibold">Filters</h3>
-          <div className="mt-4 flex items-center">
-            <div className="w-full">
+          <div className="mt-4 flex justify-center">
+            <div className="w-full lg:w-4/5 xl:w-3/4">
               <label className="block text-sm font-medium">Status</label>
               <select
                 className="mt-1 block w-full rounded-md border border-gray-300 p-2"
@@ -187,141 +190,146 @@ const DepartmentListView = () => {
         </div>
 
         {/* Department Table */}
-        <div className="mt-6">
-          {/* Table Header */}
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <label htmlFor="perPage" className="text-sm font-medium">
-                Show per Page
-              </label>
-              <select
-                id="perPage"
-                className="ml-2 rounded-md border border-gray-300 p-2"
-                value={perPage === filteredDepartments.length ? "all" : perPage}
-                onChange={handlePerPageChange}
-              >
-                <option value={2}>2</option>
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value="all">All</option>
-              </select>
+        <div className="mt-6 flex justify-center">
+          {/* Table Wrapper */}
+          <div className="w-full lg:w-4/5 xl:w-3/4">
+            {/* Table Header */}
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <label htmlFor="perPage" className="text-sm font-medium">
+                  Show per Page
+                </label>
+                <select
+                  id="perPage"
+                  className="ml-2 rounded-md border border-gray-300 p-2"
+                  value={
+                    perPage === filteredDepartments.length ? "all" : perPage
+                  }
+                  onChange={handlePerPageChange}
+                >
+                  <option value={2}>2</option>
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value="all">All</option>
+                </select>
+              </div>
+              <div className="flex items-center">
+                <input
+                  type="text"
+                  placeholder="Search"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  className="rounded-l-md border border-gray-300 p-2"
+                />
+              </div>
             </div>
-            <div className="flex items-center">
-              <input
-                type="text"
-                placeholder="Search"
-                value={searchTerm}
-                onChange={handleSearchChange}
-                className="rounded-l-md border border-gray-300 p-2"
-              />
-            </div>
-          </div>
 
-          {/* Table */}
-          <table className="min-w-full divide-y divide-gray-200 border">
-            <thead className="bg-gray-50">
-              <tr>
-                {canEditDepartments && (
+            {/* Table */}
+            <table className="min-w-full divide-y divide-gray-200 border">
+              <thead className="bg-gray-50">
+                <tr>
+                  {canEditDepartments && (
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Actions
+                    </th>
+                  )}
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    Actions
+                    Name
                   </th>
-                )}
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Manager
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
-              {currentDepartments.length > 0 ? (
-                currentDepartments.map((department) => (
-                  <tr key={department.id}>
-                    {canEditDepartments && (
-                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
-                        <div className="flex items-center space-x-4">
-                          <Link
-                            href={`/Department/DepartmentEdit?id=${department.id}`}
-                            className="flex items-center text-blue-600 hover:underline"
-                          >
-                            <Edit size={18} className="mr-1" />
-                            Edit
-                          </Link>
-                          {isSuperUser && (
-                            <button
-                              className={`font-medium ${
-                                department.status
-                                  ? "text-red-600 hover:text-red-800"
-                                  : "text-green-600 hover:text-green-800"
-                              } hover:underline`}
-                              onClick={() =>
-                                handleToggleStatus(
-                                  department.id,
-                                  department.status,
-                                )
-                              }
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Manager
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {currentDepartments.length > 0 ? (
+                  currentDepartments.map((department) => (
+                    <tr key={department.id}>
+                      {canEditDepartments && (
+                        <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
+                          <div className="flex items-center space-x-4">
+                            <Link
+                              href={`/Department/DepartmentEdit?id=${department.id}`}
+                              className="flex items-center text-blue-600 hover:underline"
                             >
-                              {department.status === "1"
-                                ? "Deactivate"
-                                : "Activate"}
-                            </button>
-                          )}
-                        </div>
+                              <Edit size={18} className="mr-1" />
+                              Edit
+                            </Link>
+                            {isSuperUser && (
+                              <button
+                                className={`font-medium ${
+                                  department.status
+                                    ? "text-red-600 hover:text-red-800"
+                                    : "text-green-600 hover:text-green-800"
+                                } hover:underline`}
+                                onClick={() =>
+                                  handleToggleStatus(
+                                    department.id,
+                                    department.status,
+                                  )
+                                }
+                              >
+                                {department.status === "1"
+                                  ? "Deactivate"
+                                  : "Activate"}
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
+                      <td className="whitespace-nowrap px-6 py-4 text-sm">
+                        {department.name}
                       </td>
-                    )}
-                    <td className="whitespace-nowrap px-6 py-4 text-sm">
-                      {department.name}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm">
-                      {findManagerName(department.managerId)}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm">
-                      <span
-                        className={`font-medium ${
-                          department.status === "1"
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {department.status === "1" ? "Active" : "Inactive"}
-                      </span>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm">
+                        {findManagerName(department.managerId)}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm">
+                        <span
+                          className={`font-medium ${
+                            department.status === "1"
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {department.status === "1" ? "Active" : "Inactive"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={canEditDepartments ? 4 : 3}
+                      className="py-4 text-center"
+                    >
+                      No departments found
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={canEditDepartments ? 4 : 3}
-                    className="py-4 text-center"
-                  >
-                    No departments found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
 
-          {/* Pagination */}
-          <div className="mt-4 flex justify-center">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-              (number) => (
-                <button
-                  key={number}
-                  onClick={() => paginate(number)}
-                  className={`mx-1 px-3 py-1 ${
-                    currentPage === number
-                      ? "bg-blue-500 text-white"
-                      : "bg-white text-blue-500 hover:bg-blue-100"
-                  } rounded border`}
-                >
-                  {number}
-                </button>
-              ),
-            )}
+            {/* Pagination */}
+            <div className="mt-4 flex justify-center">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (number) => (
+                  <button
+                    key={number}
+                    onClick={() => paginate(number)}
+                    className={`mx-1 rounded border px-3 py-1 ${
+                      currentPage === number
+                        ? "bg-gray-600 text-white"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-300"
+                    }`}
+                  >
+                    {number}
+                  </button>
+                ),
+              )}
+            </div>
           </div>
         </div>
       </div>

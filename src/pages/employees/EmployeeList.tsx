@@ -171,18 +171,20 @@ const EmployeeListView = () => {
       {/* Main Content */}
       <div className="container mx-auto flex-1 py-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">HR Administration System</h1>
-          <button className="block text-2xl md:hidden">&#9776;</button>
+        <div className="flex items-center justify-center">
+          <h1 className="text-center text-2xl font-bold">
+            HR Administration System
+          </h1>
         </div>
 
         {/* Title */}
-        <h2 className="mt-6 text-xl font-semibold">Employees</h2>
+        <h2 className="mt-6 text-center text-xl font-semibold">Employees</h2>
 
         {/* Filters Section */}
         <div className="mt-4 rounded-md border p-4">
           <h3 className="font-semibold">Filters</h3>
           <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+            {/* Status Filter */}
             <div>
               <label className="block text-sm font-medium">Status</label>
               <select
@@ -195,6 +197,7 @@ const EmployeeListView = () => {
                 <option>Deactive Only</option>
               </select>
             </div>
+            {/* Department Filter */}
             <div>
               <label className="block text-sm font-medium">Department</label>
               <select
@@ -217,6 +220,7 @@ const EmployeeListView = () => {
                 )}
               </select>
             </div>
+            {/* Manager Filter */}
             <div>
               <label className="block text-sm font-medium">Manager</label>
               <select
@@ -240,145 +244,148 @@ const EmployeeListView = () => {
         </div>
 
         {/* Employee Table */}
-        <div className="mt-6">
-          {/* Table Header */}
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <label htmlFor="perPage" className="text-sm font-medium">
-                Show per Page
-              </label>
-              <select
-                id="perPage"
-                className="ml-2 rounded-md border border-gray-300 p-2"
-                value={perPage}
-                onChange={handlePerPageChange}
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={15}>15</option>
-                <option value={filteredEmployees.length}>All</option>
-              </select>
+        <div className="mt-6 flex justify-center">
+          {/* Table Wrapper */}
+          <div className="w-full lg:w-4/5 xl:w-3/4">
+            {/* Table Header */}
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <label htmlFor="perPage" className="text-sm font-medium">
+                  Show per Page
+                </label>
+                <select
+                  id="perPage"
+                  className="ml-2 rounded-md border border-gray-300 p-2"
+                  value={perPage}
+                  onChange={handlePerPageChange}
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={15}>15</option>
+                  <option value={filteredEmployees.length}>All</option>
+                </select>
+              </div>
+              <div className="flex items-center">
+                <input
+                  type="text"
+                  placeholder="Search"
+                  className="rounded-l-md border border-gray-300 p-2"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
-            <div className="flex items-center">
-              <input
-                type="text"
-                placeholder="Search"
-                className="rounded-l-md border border-gray-300 p-2"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
 
-          {/* Table */}
-          <table className="min-w-full divide-y divide-gray-200 border">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Actions
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  First Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Last Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Telephone Number
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Email Address
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Manager
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
-              {currentEmployees.length > 0 ? (
-                currentEmployees.map((employee) => (
-                  <tr key={employee.id}>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
-                      <div className="flex items-center space-x-4">
-                        <Link
-                          href={`/employees/EmployeeEdit?id=${employee.id}`}
-                          className="flex items-center text-blue-600 hover:underline"
-                        >
-                          <Edit size={18} className="mr-1" />
-                          Edit
-                        </Link>
-                        {isSuperUser && (
-                          <button
-                            className={`font-medium ${
-                              employee.status
-                                ? "text-red-600 hover:text-red-800"
-                                : "text-green-600 hover:text-green-800"
-                            } hover:underline`}
-                            onClick={() =>
-                              handleToggleStatus(employee.id, employee.status)
-                            }
+            {/* Table */}
+            <table className="min-w-full divide-y divide-gray-200 border">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Actions
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    First Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Last Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Telephone Number
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Email Address
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Manager
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {currentEmployees.length > 0 ? (
+                  currentEmployees.map((employee) => (
+                    <tr key={employee.id}>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
+                        <div className="flex items-center space-x-4">
+                          <Link
+                            href={`/employees/EmployeeEdit?id=${employee.id}`}
+                            className="flex items-center text-blue-600 hover:underline"
                           >
-                            {employee.status ? "Deactivate" : "Activate"}
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm">
-                      {employee.firstName}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm">
-                      {employee.lastName}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm">
-                      {employee.telephone || "N/A"}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm">
-                      {employee.email}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm">
-                      {findManagerName(employee.managerId)}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm">
-                      <span
-                        className={`font-medium ${
-                          employee.status ? "text-green-600" : "text-red-600"
-                        }`}
-                      >
-                        {employee.status ? "Active" : "Inactive"}
-                      </span>
+                            <Edit size={18} className="mr-1" />
+                            Edit
+                          </Link>
+                          {isSuperUser && (
+                            <button
+                              className={`font-medium ${
+                                employee.status
+                                  ? "text-red-600 hover:text-red-800"
+                                  : "text-green-600 hover:text-green-800"
+                              } hover:underline`}
+                              onClick={() =>
+                                handleToggleStatus(employee.id, employee.status)
+                              }
+                            >
+                              {employee.status ? "Deactivate" : "Activate"}
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm">
+                        {employee.firstName}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm">
+                        {employee.lastName}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm">
+                        {employee.telephone || "N/A"}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm">
+                        {employee.email}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm">
+                        {findManagerName(employee.managerId)}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm">
+                        <span
+                          className={`font-medium ${
+                            employee.status ? "text-green-600" : "text-red-600"
+                          }`}
+                        >
+                          {employee.status ? "Active" : "Inactive"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={7} className="py-4 text-center">
+                      No employees found
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7} className="py-4 text-center">
-                    No employees found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
 
-          {/* Pagination */}
-          <div className="mt-4 flex justify-center">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-              (number) => (
-                <button
-                  key={number}
-                  onClick={() => paginate(number)}
-                  className={`mx-1 px-3 py-1 ${
-                    currentPage === number
-                      ? "bg-blue-500 text-white"
-                      : "bg-white text-blue-500 hover:bg-blue-100"
-                  } rounded border`}
-                >
-                  {number}
-                </button>
-              ),
-            )}
+            {/* Pagination */}
+            <div className="mt-4 flex justify-center">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (number) => (
+                  <button
+                    key={number}
+                    onClick={() => paginate(number)}
+                    className={`mx-1 rounded border px-3 py-1 ${
+                      currentPage === number
+                        ? "bg-gray-600 text-white"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-300"
+                    }`}
+                  >
+                    {number}
+                  </button>
+                ),
+              )}
+            </div>
           </div>
         </div>
       </div>

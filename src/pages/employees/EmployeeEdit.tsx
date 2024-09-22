@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { api } from "~/utils/api";
 import { Employee } from "~/types/employee";
 import Menu from "~/components/Menu";
+import { Save, X } from "lucide-react";
 
 const EmployeeCreateEdit = () => {
   const { data: session, status } = useSession();
@@ -107,25 +108,18 @@ const EmployeeCreateEdit = () => {
   const isSuperUser = session?.user?.role === 0;
 
   return (
-    <div className="flex">
-      {/* Left Menu */}
+    <div className="flex min-h-screen items-center justify-center">
       <Menu />
-
-      {/* Main Content */}
       <div className="container mx-auto flex-1 py-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">HR Administration System</h1>
-          <button className="block text-2xl md:hidden">&#9776;</button>
-        </div>
-
-        {/* Title */}
-        <h2 className="mt-6 text-xl font-semibold">
-          {isEditing ? "Edit Employee" : "Create Employee"}
+        <h1 className="text-center text-2xl font-bold">
+          HR Administration System
+        </h1>
+        <h2 className="mt-6 text-center text-xl font-semibold">
+          Edit Employee
         </h2>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="mt-6 max-w-lg">
+        <form onSubmit={handleSubmit} className="mx-auto mt-6 max-w-lg">
           <div className="mb-4">
             <label htmlFor="firstName" className="mb-2 block font-bold">
               *Name
@@ -238,18 +232,20 @@ const EmployeeCreateEdit = () => {
             </div>
           )}
 
-          <div className="mt-6 flex justify-end space-x-4">
+          <div className="mt-6 flex justify-center space-x-4">
             <button
               type="submit"
-              className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-600"
+              className="flex items-center rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-600"
             >
+              <Save size={18} className="mr-1" />
               Save
             </button>
             <button
               type="button"
               onClick={() => router.push("/employees/EmployeeList")}
-              className="rounded bg-gray-300 px-4 py-2 font-bold text-gray-700 hover:bg-gray-400"
+              className="flex items-center rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-600"
             >
+              <X size={18} className="mr-1" />
               Cancel
             </button>
           </div>
