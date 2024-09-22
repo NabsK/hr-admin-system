@@ -157,28 +157,6 @@ export const employeeRouter = createTRPCRouter({
     }
   }),
 
-  getManager: protectedProcedure
-    .input(z.object({ managerId: z.number().nullable() }))
-    .query(async ({ ctx, input }) => {
-      if (input.managerId === null) {
-        return null;
-      }
-
-      const manager = await ctx.prisma.employee.findUnique({
-        where: {
-          id: input.managerId,
-        },
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-        },
-      });
-
-      return manager;
-    }),
-
   // New method to get a single employee by userId
   getById: protectedProcedure
     .input(z.object({ id: z.number() }))
@@ -198,46 +176,6 @@ export const employeeRouter = createTRPCRouter({
       }
 
       return employee;
-    }),
-
-  // New method to update the current employee's details
-  updateOwnProfile: protectedProcedure
-    .input(
-      z.object({
-        firstName: z.string().optional(),
-        lastName: z.string().optional(),
-        telephone: z.string().optional(),
-        email: z.string().email().optional(),
-        departmentIds: z.array(z.number()).optional(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const userId: number = ctx.user.id;
-
-      const employee = await ctx.prisma.employee.findUnique({
-        where: { id: userId },
-      });
-
-      if (!employee) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Employee not found",
-        });
-      }
-
-      const updatedEmployee = await ctx.prisma.employee.update({
-        where: { id: userId },
-        data: {
-          ...input,
-          departments: input.departmentIds
-            ? {
-                set: input.departmentIds.map((id) => ({ id })),
-              }
-            : undefined,
-        },
-      });
-
-      return updatedEmployee;
     }),
 
   // New method to deactivate an employee
@@ -281,16 +219,38 @@ export const employeeRouter = createTRPCRouter({
       return updatedEmployee;
     }),
 
-  // Method to get an employee's full name by their ID
-  getFullName: protectedProcedure
-    .input(z.object({ id: z.number() })) // Input expects the employee's ID
+  getCurrentUserRole: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.user.id;
+    const employee = await ctx.prisma.employee.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+
+    if (!employee) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Employee not found",
+      });
+    }
+
+    switch (employee.role) {
+      case 0:
+        return "Super-user";
+      case 1:
+        return "Manager";
+      case 2:
+        return "Employee";
+      default:
+        return "Unknown";
+    }
+  }),
+
+  getEmployeeManager: protectedProcedure
+    .input(z.object({ id: z.number() })) // Employee ID
     .query(async ({ ctx, input }) => {
       const employee = await ctx.prisma.employee.findUnique({
         where: { id: input.id },
-        select: {
-          firstName: true,
-          lastName: true,
-        },
+        select: { managerId: true },
       });
 
       if (!employee) {
@@ -300,44 +260,46 @@ export const employeeRouter = createTRPCRouter({
         });
       }
 
-      // Return full name as a single string
-      return `${employee.firstName} ${employee.lastName}`;
-    }),
-
-  create: protectedProcedure
-    .input(
-      z.object({
-        firstName: z.string(),
-        lastName: z.string(),
-        telephone: z.string(),
-        email: z.string().email(),
-        role: z.number().min(0).max(2),
-        managerId: z.number().nullable(), // Allow null values for optional selection
-        status: z.boolean().optional(),
-        departments: z.array(z.number()),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const employeeData = {
-        ...input,
-        status: input.status !== undefined ? input.status : true,
-        password: "Password123#", // Default password
-        departments: {
-          connect: input.departments.map((id) => ({ id })),
-        },
-      };
-
-      if (ctx.user.role !== 0) {
+      if (employee.managerId === null) {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only Super Users can create employees",
+          code: "NOT_FOUND",
+          message: "This employee does not have a manager",
         });
       }
 
-      const employee = await ctx.prisma.employee.create({
-        data: employeeData,
+      const manager = await ctx.prisma.employee.findUnique({
+        where: { id: employee.managerId },
       });
 
-      return employee;
+      if (!manager) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Manager not found",
+        });
+      }
+
+      return manager;
     }),
+
+  // Get all unique managers
+  getAllManagers: protectedProcedure.query(async ({ ctx }) => {
+    const managers = await ctx.prisma.employee.findMany({
+      where: {
+        id: {
+          in: await ctx.prisma.employee
+            .findMany({
+              where: {
+                managerId: { not: null }, // Get employees with managers
+              },
+              select: { managerId: true },
+            })
+            .then((employees) => [
+              ...new Set(employees.map((e) => e.managerId)),
+            ]), // Extract unique manager IDs
+        },
+      },
+    });
+
+    return managers;
+  }),
 });
