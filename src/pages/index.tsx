@@ -16,17 +16,19 @@ export default function EmployeeListView() {
     }
   }, [status, router]);
 
-  // Example query - replace with relevant tRPC queries for your HR system
   const hello = api.post.hello.useQuery({
     text: "Welcome to the HR Administration System",
   });
 
   // Show loading state while checking session
   if (status === "loading") {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex h-screen items-center justify-center text-2xl text-gray-600">
+        Loading...
+      </div>
+    );
   }
 
-  // If authenticated, show the main page
   return (
     <>
       <Head>
@@ -37,29 +39,37 @@ export default function EmployeeListView() {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#1aa3ff] to-[#404040]">
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-          <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
+      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-blue-600 to-gray-900 text-white">
+        <div className="container max-w-4xl px-6 py-12">
+          <h1 className="mb-8 text-center text-4xl font-bold leading-tight tracking-wide sm:text-5xl">
             HR Administration System
           </h1>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:gap-10">
             <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
+              className="group flex transform flex-col items-center gap-4 rounded-lg bg-gray-800 p-6 shadow-lg transition-all hover:-translate-y-2 hover:bg-gray-700 hover:shadow-2xl"
               href="/employees/EmployeeList"
             >
-              <h3 className="text-2xl font-bold">Employees →</h3>
-              <div className="text-lg">Manage and view employee details.</div>
+              <h3 className="text-2xl font-semibold group-hover:text-blue-400">
+                Employees →
+              </h3>
+              <p className="text-lg text-gray-300 group-hover:text-gray-100">
+                Manage and view employee details.
+              </p>
             </Link>
             <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
+              className="group flex transform flex-col items-center gap-4 rounded-lg bg-gray-800 p-6 shadow-lg transition-all hover:-translate-y-2 hover:bg-gray-700 hover:shadow-2xl"
               href="/Department/DepartmentList"
             >
-              <h3 className="text-2xl font-bold">Departments →</h3>
-              <div className="text-lg">View and manage departments.</div>
+              <h3 className="text-2xl font-semibold group-hover:text-blue-400">
+                Departments →
+              </h3>
+              <p className="text-lg text-gray-300 group-hover:text-gray-100">
+                View and manage departments.
+              </p>
             </Link>
           </div>
-          <div className="flex flex-col items-center gap-2">
-            <p className="text-2xl text-white">
+          <div className="mt-10 flex flex-col items-center gap-4">
+            <p className="text-xl font-medium">
               {hello.data ? hello.data.greeting : "Loading..."}
             </p>
             <AuthShowcase />
@@ -79,8 +89,8 @@ function AuthShowcase() {
     });
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4">
-      <p className="text-center text-2xl text-white">
+    <div className="flex flex-col items-center gap-4">
+      <p className="text-center text-lg font-medium text-gray-100">
         {sessionData && !isRoleLoading
           ? `Logged in as ${userRole}`
           : sessionData
@@ -88,7 +98,7 @@ function AuthShowcase() {
             : "Not logged in"}
       </p>
       <button
-        className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
+        className="rounded-full bg-blue-500 px-8 py-3 text-sm font-semibold text-white transition-all hover:bg-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
         onClick={sessionData ? () => signOut() : () => signIn()}
       >
         {sessionData ? "Sign out" : "Sign in"}

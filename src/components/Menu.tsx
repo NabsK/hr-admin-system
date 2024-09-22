@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Menu as MenuIcon, X } from "lucide-react";
+import { Menu as MenuIcon, X, LogOut } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 
 const Menu = () => {
@@ -21,40 +21,52 @@ const Menu = () => {
       {/* Hamburger Menu Button */}
       <button
         onClick={toggleMenu}
-        className="fixed left-1 top-4 z-50 rounded-md bg-sky-600 p-2 text-white"
+        className="fixed left-4 top-4 z-50 rounded-md bg-gray-900 p-2 text-white shadow-lg transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500"
       >
         {isMenuOpen ? <X size={24} /> : <MenuIcon size={24} />}
       </button>
+
       {/* Menu Content */}
       <div
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-sky-600 p-4 text-white transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-gradient-to-b from-gray-900 to-gray-700 p-6 text-white shadow-lg transition-transform duration-300 ease-in-out ${
           isMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <h2 className="mb-9 text-center text-xl font-bold">Menu</h2>
-        <ul>
-          <li className="mb-4">
-            <a href="/employees/EmployeeList" className="hover:underline">
+        <h2 className="mb-8 text-center text-2xl font-bold tracking-wide">
+          Menu
+        </h2>
+        <ul className="space-y-6">
+          <li>
+            <a
+              href="/employees/EmployeeList"
+              className="block text-lg font-medium transition-colors duration-150 hover:text-gray-300"
+            >
               Employee List
             </a>
           </li>
           {isSuperUser && (
-            <li className="mb-4">
-              <a href="/employees/EmployeeCreate" className="hover:underline">
+            <li>
+              <a
+                href="/employees/EmployeeCreate"
+                className="block text-lg font-medium transition-colors duration-150 hover:text-gray-300"
+              >
                 Employee Create
               </a>
             </li>
           )}
-          <li className="mb-4">
-            <a href="/Department/DepartmentList" className="hover:underline">
+          <li>
+            <a
+              href="/Department/DepartmentList"
+              className="block text-lg font-medium transition-colors duration-150 hover:text-gray-300"
+            >
               Department List
             </a>
           </li>
           {isSuperUser && (
-            <li className="mb-4">
+            <li>
               <a
                 href="/Department/DepartmentCreate"
-                className="hover:underline"
+                className="block text-lg font-medium transition-colors duration-150 hover:text-gray-300"
               >
                 Department Create
               </a>
@@ -63,11 +75,12 @@ const Menu = () => {
         </ul>
 
         {/* Sign Out Button */}
-        <div className="mt-auto pt-4">
+        <div className="mt-8 border-t border-white/20 pt-6">
           <button
             onClick={handleSignOut}
-            className="w-full rounded-md bg-transparent py-2 text-red-600 transition-colors hover:scale-105"
+            className="flex w-full items-center justify-center gap-2 rounded-md bg-red-600 py-2 text-lg font-medium transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500"
           >
+            <LogOut size={20} />
             Sign Out
           </button>
         </div>
