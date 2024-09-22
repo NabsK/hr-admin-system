@@ -12,6 +12,7 @@ const DepartmentCreate = () => {
   const [department, setDepartment] = useState<Partial<Department>>({
     name: "",
     managerId: "",
+    status: "1", // Default to active status
   });
 
   useEffect(() => {
@@ -19,6 +20,15 @@ const DepartmentCreate = () => {
       router.push("/auth/login");
     }
   }, [status, router]);
+
+  const createDepartmentMutation = api.department.create.useMutation({
+    onSuccess: () => {
+      router.push("/Department/DepartmentList");
+    },
+    onError: (error) => {
+      console.error("Error creating department:", error);
+    },
+  });
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -30,12 +40,19 @@ const DepartmentCreate = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.department.create.mutate(department);
-      router.push("/departments");
+      await createDepartmentMutation.mutateAsync({
+        name: department.name,
+        managerId: Number(department.managerId) || undefined,
+        status: department.status,
+      });
     } catch (error) {
       console.error("Error creating department:", error);
     }
   };
+
+  const { data: managers } = api.employee.getAllManagers.useQuery(undefined, {
+    enabled: status === "authenticated",
+  });
 
   if (status === "loading") return <p>Loading...</p>;
 
@@ -73,13 +90,17 @@ const DepartmentCreate = () => {
             <select
               id="managerId"
               name="managerId"
-              value={department.managerId}
+              value={department.managerId ?? ""}
               onChange={handleInputChange}
               required
               className="w-full rounded-md border border-gray-300 p-2"
             >
               <option value="">- Select -</option>
-              {/* Add manager options here */}
+              {managers?.map((manager) => (
+                <option key={manager.id} value={manager.id}>
+                  {manager.firstName} {manager.lastName}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -92,7 +113,7 @@ const DepartmentCreate = () => {
             </button>
             <button
               type="button"
-              onClick={() => router.push("/employees/EmployeeList")}
+              onClick={() => router.push("/Department/DepartmentList")}
               className="rounded bg-gray-300 px-4 py-2 font-bold text-gray-700 hover:bg-gray-400"
             >
               Cancel

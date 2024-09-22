@@ -20,11 +20,6 @@ const EmployeeListView = () => {
     }
   }, [status, router]);
 
-  useEffect(() => {
-    console.log("Current session:", session);
-    console.log("Authentication status:", status);
-  }, [session, status]);
-
   const { data, error, isLoading } = api.employee.getAll.useQuery(undefined, {
     enabled: status === "authenticated",
     onError: (error) => {
@@ -34,7 +29,6 @@ const EmployeeListView = () => {
 
   useEffect(() => {
     if (data) {
-      console.log("Received employee data:", data);
       setEmployees(data);
     }
   }, [data]);
@@ -50,19 +44,26 @@ const EmployeeListView = () => {
     },
   });
 
+  const { data: departments, error: departmentError } =
+    api.department.getAll.useQuery(undefined, {
+      enabled: status === "authenticated", // This is fine for managing data fetching
+      onError: (error) => {
+        console.error("Error fetching departments:", error);
+      },
+    });
+
   useEffect(() => {
-    if (managers) {
-      console.log("Received managers data:", managers);
+    if (departments) {
+      console.log("Received departments data:", departments);
     }
-  }, [managers]);
+  }, [departments]);
 
   const toggleStatus = api.employee.toggleActivationStatus.useMutation({
     onSuccess: (data, variables) => {
-      // Ensure variables.id is available
       setEmployees((prevEmployees) =>
         prevEmployees.map((employee) =>
           employee.id === variables.id
-            ? { ...employee, status: !employee.status } // Toggle status locally
+            ? { ...employee, status: !employee.status }
             : employee,
         ),
       );
@@ -91,7 +92,7 @@ const EmployeeListView = () => {
 
   const handlePerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setPerPage(Number(e.target.value));
-    setCurrentPage(1); // Reset to first page when changing items per page
+    setCurrentPage(1);
   };
 
   const indexOfLastEmployee = currentPage * perPage;
@@ -100,13 +101,17 @@ const EmployeeListView = () => {
     indexOfFirstEmployee,
     indexOfLastEmployee,
   );
-
   const totalPages = Math.ceil(employees.length / perPage);
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
-  if (status === "loading" || isLoading) return <p>Loading...</p>;
+  if (status === "loading" || isLoading || managerLoading)
+    return <p>Loading...</p>;
   if (error) return <p>Error fetching employees: {error.message}</p>;
+  if (managerError)
+    return <p>Error fetching managers: {managerError.message}</p>;
+  if (departmentError)
+    return <p>Error fetching departments: {departmentError.message}</p>;
 
   const isSuperUser = session?.user?.role === 0;
 
@@ -133,13 +138,24 @@ const EmployeeListView = () => {
             <div>
               <label className="block text-sm font-medium">Status</label>
               <select className="mt-1 block w-full rounded-md border border-gray-300 p-2">
-                <option>Active Only / (All) / Deactive Only</option>
+                <option>All</option>
+                <option>Active Only</option>
+                <option>Deactive Only</option>
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium">Department</label>
               <select className="mt-1 block w-full rounded-md border border-gray-300 p-2">
-                <option>- Select -</option>
+                <option value="">- Select -</option>
+                {departments && departments.length > 0 ? (
+                  departments.map((department) => (
+                    <option key={department.id} value={department.id}>
+                      {department.name}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading managers...</option>
+                )}
               </select>
             </div>
             <div>
@@ -188,8 +204,6 @@ const EmployeeListView = () => {
               <input
                 type="text"
                 placeholder="Search"
-                // value={searchTerm}
-                // onChange={handleSearchChange}
                 className="rounded-l-md border border-gray-300 p-2"
               />
               <button className="rounded-r-md border border-l-0 border-gray-300 bg-gray-100 p-2">

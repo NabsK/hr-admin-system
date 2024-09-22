@@ -2,9 +2,8 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { api } from "~/utils/api";
-import { Department } from "~/types/department";
-import { Employee } from "~/types/employee";
 import Menu from "~/components/Menu";
+import { Department } from "~/types/department";
 
 const DepartmentEdit = () => {
   const { data: session, status } = useSession();
@@ -22,40 +21,28 @@ const DepartmentEdit = () => {
     }
   }, [status, router]);
 
-  const {
-    data: managers,
-    error: managerError,
-    isLoading: managerLoading,
-  } = api.employee.getAllManagers.useQuery(undefined, {
+  const { data: managers } = api.employee.getAllManagers.useQuery(undefined, {
     enabled: status === "authenticated",
-    onError: (error) => {
-      console.error("Error fetching managers:", error);
-    },
   });
-
-  useEffect(() => {
-    if (managers) {
-      console.log("Received managers data:", managers);
-    }
-  }, [managers]);
 
   const { data: departmentData, isLoading: isDepartmentLoading } =
     api.department.getById.useQuery(
       { id: parseInt(id as string) },
-      {
-        enabled: !!id && status === "authenticated",
-      },
+      { enabled: !!id && status === "authenticated" },
     );
+
   useEffect(() => {
     if (departmentData) {
       setDepartment({
         name: departmentData.name,
         status: departmentData.status,
+        managerId: departmentData.managerId, // Pre-fill managerId
       });
     }
   }, [departmentData]);
 
-  // console.log(department);
+  const { mutateAsync: updateDepartment } = api.department.update.useMutation();
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
@@ -66,11 +53,11 @@ const DepartmentEdit = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.department.update.mutateAsync({
+      await updateDepartment({
         id: parseInt(id as string),
         ...department,
       });
-      router.push("/departments");
+      router.push("/Department/DepartmentList");
     } catch (error) {
       console.error("Error updating department:", error);
     }
@@ -82,11 +69,7 @@ const DepartmentEdit = () => {
     <div className="flex">
       <Menu />
       <div className="container mx-auto flex-1 py-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">HR Administration System</h1>
-          <button className="block text-2xl md:hidden">&#9776;</button>
-        </div>
-
+        <h1 className="text-2xl font-bold">HR Administration System</h1>
         <h2 className="mt-6 text-xl font-semibold">Edit Department</h2>
 
         <form onSubmit={handleSubmit} className="mt-6 max-w-lg">
@@ -118,15 +101,11 @@ const DepartmentEdit = () => {
               className="w-full rounded-md border border-gray-300 p-2"
             >
               <option value="">- Select -</option>
-              {managers && managers.length > 0 ? (
-                managers.map((manager) => (
-                  <option key={manager.id} value={manager.id}>
-                    {manager.firstName} {manager.lastName}
-                  </option>
-                ))
-              ) : (
-                <option disabled>Loading managers...</option>
-              )}
+              {managers?.map((manager) => (
+                <option key={manager.id} value={manager.id}>
+                  {manager.firstName} {manager.lastName}
+                </option>
+              ))}
             </select>
           </div>
 

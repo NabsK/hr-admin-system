@@ -17,11 +17,11 @@ export const employeeRouter = createTRPCRouter({
         role: z.number().min(0).max(2),
         managerId: z.number().optional(),
         status: z.boolean(),
-        departmentIds: z.array(z.number()),
+        departments: z.array(z.number()),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      if (ctx.user.role !== 2) {
+      if (ctx.user.role !== 0) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Only Super Users can create employees",
@@ -30,10 +30,16 @@ export const employeeRouter = createTRPCRouter({
 
       const employee = await ctx.prisma.employee.create({
         data: {
-          ...input,
+          firstName: input.firstName,
+          lastName: input.lastName,
+          telephone: input.telephone,
+          email: input.email,
+          role: input.role,
+          managerId: input.managerId,
+          status: input.status,
           password: "Password123#", // Default password
           departments: {
-            connect: input.departmentIds.map((id) => ({ id })),
+            connect: input.departments.map((id) => ({ id })),
           },
         },
       });

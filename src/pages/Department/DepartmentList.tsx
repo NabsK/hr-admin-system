@@ -5,7 +5,7 @@ import { api } from "~/utils/api";
 import { Department } from "~/types/department";
 import Menu from "~/components/Menu";
 import Link from "next/link";
-import { Edit, Filter, Search } from "lucide-react";
+import { Edit } from "lucide-react";
 
 const DepartmentListView = () => {
   const { data: session, status } = useSession();
@@ -42,7 +42,7 @@ const DepartmentListView = () => {
       setFilteredDepartments(convertedData);
     }
   }, [data]);
-  console.log(departments);
+  //console.log(departments);
 
   const {
     data: managers,
@@ -70,13 +70,7 @@ const DepartmentListView = () => {
           : department,
       );
       setDepartments(updatedDepartments);
-      setFilteredDepartments((prev) =>
-        prev.map((department) =>
-          department.id === variables.id.toString()
-            ? { ...department, status: updatedDepartment.status }
-            : department,
-        ),
-      );
+      applyFilters(updatedDepartments);
     },
     onError: (error) => {
       console.error("Error toggling department status:", error);
@@ -103,27 +97,31 @@ const DepartmentListView = () => {
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
+    applyFilters(departments, e.target.value, statusFilter);
   };
 
   const handleStatusFilterChange = (
     e: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     setStatusFilter(e.target.value);
+    applyFilters(departments, searchTerm, e.target.value);
   };
 
-  const applyFilters = () => {
-    let filtered = departments;
+  const applyFilters = (
+    deps: Department[],
+    search: string = searchTerm,
+    status: string = statusFilter,
+  ) => {
+    let filtered = deps;
 
-    if (searchTerm) {
+    if (search) {
       filtered = filtered.filter((department) =>
-        department.name.toLowerCase().includes(searchTerm.toLowerCase()),
+        department.name.toLowerCase().includes(search.toLowerCase()),
       );
     }
 
-    if (statusFilter !== "all") {
-      filtered = filtered.filter(
-        (department) => department.status === statusFilter,
-      );
+    if (status !== "all") {
+      filtered = filtered.filter((department) => department.status === status);
     }
 
     setFilteredDepartments(filtered);
@@ -145,6 +143,8 @@ const DepartmentListView = () => {
   if (error) return <p>Error fetching departments: {error.message}</p>;
 
   const isSuperUser = session?.user?.role === 0;
+  const isManager = session?.user?.role === 1;
+  const canEditDepartments = isSuperUser || isManager;
 
   const findManagerName = (managerId: number | null) => {
     const manager = managers?.find((mgr) => mgr.id === managerId);
@@ -184,13 +184,6 @@ const DepartmentListView = () => {
               </select>
             </div>
           </div>
-          <button
-            className="mt-4 flex items-center rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-            onClick={applyFilters}
-          >
-            <Filter size={18} className="mr-2" />
-            <span>Filter</span>
-          </button>
         </div>
 
         {/* Department Table */}
@@ -221,12 +214,6 @@ const DepartmentListView = () => {
                 onChange={handleSearchChange}
                 className="rounded-l-md border border-gray-300 p-2"
               />
-              <button
-                className="rounded-r-md border border-l-0 border-gray-300 bg-gray-100 p-2"
-                onClick={applyFilters}
-              >
-                <Search size={20} />
-              </button>
             </div>
           </div>
 
@@ -234,9 +221,11 @@ const DepartmentListView = () => {
           <table className="min-w-full divide-y divide-gray-200 border">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Actions
-                </th>
+                {canEditDepartments && (
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Actions
+                  </th>
+                )}
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                   Name
                 </th>
@@ -252,36 +241,38 @@ const DepartmentListView = () => {
               {currentDepartments.length > 0 ? (
                 currentDepartments.map((department) => (
                   <tr key={department.id}>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
-                      <div className="flex items-center space-x-4">
-                        <Link
-                          href={`/Department/DepartmentEdit?id=${department.id}`}
-                          className="flex items-center text-blue-600 hover:underline"
-                        >
-                          <Edit size={18} className="mr-1" />
-                          Edit
-                        </Link>
-                        {isSuperUser && (
-                          <button
-                            className={`font-medium ${
-                              department.status
-                                ? "text-red-600 hover:text-red-800"
-                                : "text-green-600 hover:text-green-800"
-                            } hover:underline`}
-                            onClick={() =>
-                              handleToggleStatus(
-                                department.id,
-                                department.status,
-                              )
-                            }
+                    {canEditDepartments && (
+                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
+                        <div className="flex items-center space-x-4">
+                          <Link
+                            href={`/Department/DepartmentEdit?id=${department.id}`}
+                            className="flex items-center text-blue-600 hover:underline"
                           >
-                            {department.status === "1"
-                              ? "Deactivate"
-                              : "Activate"}
-                          </button>
-                        )}
-                      </div>
-                    </td>
+                            <Edit size={18} className="mr-1" />
+                            Edit
+                          </Link>
+                          {isSuperUser && (
+                            <button
+                              className={`font-medium ${
+                                department.status
+                                  ? "text-red-600 hover:text-red-800"
+                                  : "text-green-600 hover:text-green-800"
+                              } hover:underline`}
+                              onClick={() =>
+                                handleToggleStatus(
+                                  department.id,
+                                  department.status,
+                                )
+                              }
+                            >
+                              {department.status === "1"
+                                ? "Deactivate"
+                                : "Activate"}
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    )}
                     <td className="whitespace-nowrap px-6 py-4 text-sm">
                       {department.name}
                     </td>
@@ -303,7 +294,10 @@ const DepartmentListView = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="py-4 text-center">
+                  <td
+                    colSpan={canEditDepartments ? 4 : 3}
+                    className="py-4 text-center"
+                  >
                     No departments found
                   </td>
                 </tr>

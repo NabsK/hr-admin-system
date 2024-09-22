@@ -13,37 +13,37 @@ const EmployeeCreate = () => {
     lastName: string;
     telephone: string;
     email: string;
-    managerId: number | null; // Use null to allow no selection
+    managerId: number | null;
     status: boolean;
     role: number;
-    departmentIds: number[];
+    departments: number[]; // Update to "departments"
   }>({
     firstName: "",
     lastName: "",
     telephone: "",
     email: "",
-    managerId: null, // Default to null
+    managerId: null,
     status: true,
     role: 2,
-    departmentIds: [],
+    departments: [], // Update to "departments"
   });
 
-  const {
-    data: managers,
-    error: managerError,
-    isLoading: managerLoading,
-  } = api.employee.getAllManagers.useQuery(undefined, {
-    enabled: status === "authenticated",
-    onError: (error) => {
-      console.error("Error fetching managers:", error);
-    },
-  });
+  // Fetch managers and departments
+  const { data: managers, isLoading: managerLoading } =
+    api.employee.getAll.useQuery(undefined, {
+      enabled: status === "authenticated",
+      onError: (error) => {
+        console.error("Error fetching managers:", error);
+      },
+    });
 
-  useEffect(() => {
-    if (managers) {
-      console.log("Received managers data:", managers);
-    }
-  }, [managers]);
+  const { data: departments, isLoading: departmentLoading } =
+    api.department.getAll.useQuery(undefined, {
+      enabled: status === "authenticated",
+      onError: (error) => {
+        console.error("Error fetching departments:", error);
+      },
+    });
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -53,7 +53,7 @@ const EmployeeCreate = () => {
 
   const createEmployee = api.employee.create.useMutation({
     onSuccess: () => {
-      router.push("/employees");
+      router.push("/employees/EmployeeList");
     },
     onError: (error) => {
       console.error("Error creating employee:", error);
@@ -64,10 +64,7 @@ const EmployeeCreate = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
-
-    // Convert value to number for managerId
     const newValue = name === "managerId" ? Number(value) : value;
-
     setEmployee((prev) => ({
       ...prev,
       [name]: newValue,
@@ -87,13 +84,25 @@ const EmployeeCreate = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await createEmployee.mutateAsync(employee);
+      await createEmployee.mutateAsync({
+        firstName: employee.firstName,
+        lastName: employee.lastName,
+        telephone: employee.telephone,
+        email: employee.email,
+        role: employee.role,
+        status: employee.status,
+        departments: employee.departments,
+        ...(employee.managerId !== null && { managerId: employee.managerId }), // Include managerId only if it's not null
+      });
+
+      // Save employee to the database
     } catch (error) {
       console.error("Failed to create employee:", error);
     }
   };
 
-  if (status === "loading") return <p>Loading...</p>;
+  if (status === "loading" || managerLoading || departmentLoading)
+    return <p>Loading...</p>;
 
   return (
     <div className="flex">
@@ -109,7 +118,7 @@ const EmployeeCreate = () => {
         <form onSubmit={handleSubmit} className="mt-6 max-w-lg">
           <div className="mb-4">
             <label htmlFor="firstName" className="mb-2 block font-bold">
-              *Name
+              *First Name
             </label>
             <input
               type="text"
@@ -124,7 +133,7 @@ const EmployeeCreate = () => {
 
           <div className="mb-4">
             <label htmlFor="lastName" className="mb-2 block font-bold">
-              *Surname
+              *Last Name
             </label>
             <input
               type="text"
@@ -139,7 +148,7 @@ const EmployeeCreate = () => {
 
           <div className="mb-4">
             <label htmlFor="telephone" className="mb-2 block font-bold">
-              *Telephone Number
+              *Telephone
             </label>
             <input
               type="tel"
@@ -155,7 +164,7 @@ const EmployeeCreate = () => {
 
           <div className="mb-4">
             <label htmlFor="email" className="mb-2 block font-bold">
-              *Email Address
+              *Email
             </label>
             <input
               type="email"
@@ -182,15 +191,11 @@ const EmployeeCreate = () => {
               className="w-full rounded-md border border-gray-300 p-2"
             >
               <option value="">- Select -</option>
-              {managers && managers.length > 0 ? (
-                managers.map((manager) => (
-                  <option key={manager.id} value={manager.id}>
-                    {manager.firstName} {manager.lastName}
-                  </option>
-                ))
-              ) : (
-                <option disabled>Loading managers...</option>
-              )}
+              {managers?.map((manager) => (
+                <option key={manager.id} value={manager.id}>
+                  {manager.firstName} {manager.lastName}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -199,15 +204,19 @@ const EmployeeCreate = () => {
               *Departments
             </label>
             <select
-              id="departmentIds"
-              name="departmentIds"
-              multiple
-              onChange={handleDepartmentChange}
+              id="departmentId"
+              name="departmentId"
+              value={employee.departmentId ?? ""}
+              onChange={handleInputChange}
+              required
               className="w-full rounded-md border border-gray-300 p-2"
             >
-              <option value="1">Department 1</option>
-              <option value="2">Department 2</option>
-              <option value="3">Department 3</option>
+              <option value="">- Select -</option>
+              {departments?.map((department) => (
+                <option key={department.id} value={department.id}>
+                  {department.name}
+                </option>
+              ))}
             </select>
           </div>
 
