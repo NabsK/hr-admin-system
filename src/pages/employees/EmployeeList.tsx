@@ -11,8 +11,13 @@ const EmployeeListView = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [departmentFilter, setDepartmentFilter] = useState("");
+  const [managerFilter, setManagerFilter] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -30,6 +35,7 @@ const EmployeeListView = () => {
   useEffect(() => {
     if (data) {
       setEmployees(data);
+      setFilteredEmployees(data);
     }
   }, [data]);
 
@@ -46,21 +52,22 @@ const EmployeeListView = () => {
 
   const { data: departments, error: departmentError } =
     api.department.getAll.useQuery(undefined, {
-      enabled: status === "authenticated", // This is fine for managing data fetching
+      enabled: status === "authenticated",
       onError: (error) => {
         console.error("Error fetching departments:", error);
       },
     });
 
-  useEffect(() => {
-    if (departments) {
-      console.log("Received departments data:", departments);
-    }
-  }, [departments]);
-
   const toggleStatus = api.employee.toggleActivationStatus.useMutation({
     onSuccess: (data, variables) => {
       setEmployees((prevEmployees) =>
+        prevEmployees.map((employee) =>
+          employee.id === variables.id
+            ? { ...employee, status: !employee.status }
+            : employee,
+        ),
+      );
+      setFilteredEmployees((prevEmployees) =>
         prevEmployees.map((employee) =>
           employee.id === variables.id
             ? { ...employee, status: !employee.status }
@@ -95,13 +102,54 @@ const EmployeeListView = () => {
     setCurrentPage(1);
   };
 
+  const handleFilter = () => {
+    let filtered = employees;
+
+    if (statusFilter !== "All") {
+      filtered = filtered.filter(
+        (employee) => employee.status === (statusFilter === "Active Only"),
+      );
+    }
+
+    if (departmentFilter) {
+      filtered = filtered.filter((employee) =>
+        employee.departments.some(
+          (dept) => dept.departmentId === parseInt(departmentFilter),
+        ),
+      );
+    }
+
+    if (managerFilter) {
+      filtered = filtered.filter(
+        (employee) => employee.managerId === parseInt(managerFilter),
+      );
+    }
+
+    if (searchTerm) {
+      const lowercasedSearch = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (employee) =>
+          employee.firstName.toLowerCase().includes(lowercasedSearch) ||
+          employee.lastName.toLowerCase().includes(lowercasedSearch) ||
+          employee.email.toLowerCase().includes(lowercasedSearch),
+      );
+    }
+
+    setFilteredEmployees(filtered);
+    setCurrentPage(1);
+  };
+
+  useEffect(() => {
+    handleFilter();
+  }, [statusFilter, departmentFilter, managerFilter, searchTerm, employees]);
+
   const indexOfLastEmployee = currentPage * perPage;
   const indexOfFirstEmployee = indexOfLastEmployee - perPage;
-  const currentEmployees = employees.slice(
+  const currentEmployees = filteredEmployees.slice(
     indexOfFirstEmployee,
     indexOfLastEmployee,
   );
-  const totalPages = Math.ceil(employees.length / perPage);
+  const totalPages = Math.ceil(filteredEmployees.length / perPage);
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
@@ -137,7 +185,11 @@ const EmployeeListView = () => {
           <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
             <div>
               <label className="block text-sm font-medium">Status</label>
-              <select className="mt-1 block w-full rounded-md border border-gray-300 p-2">
+              <select
+                className="mt-1 block w-full rounded-md border border-gray-300 p-2"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
                 <option>All</option>
                 <option>Active Only</option>
                 <option>Deactive Only</option>
@@ -145,22 +197,33 @@ const EmployeeListView = () => {
             </div>
             <div>
               <label className="block text-sm font-medium">Department</label>
-              <select className="mt-1 block w-full rounded-md border border-gray-300 p-2">
-                <option value="">- Select -</option>
+              <select
+                className="mt-1 block w-full rounded-md border border-gray-300 p-2"
+                value={departmentFilter}
+                onChange={(e) => setDepartmentFilter(e.target.value)}
+              >
+                <option value="">All Departments</option>
                 {departments && departments.length > 0 ? (
                   departments.map((department) => (
-                    <option key={department.id} value={department.id}>
+                    <option
+                      key={department.id}
+                      value={department.id.toString()}
+                    >
                       {department.name}
                     </option>
                   ))
                 ) : (
-                  <option disabled>Loading managers...</option>
+                  <option disabled>Loading departments...</option>
                 )}
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium">Manager</label>
-              <select className="mt-1 block w-full rounded-md border border-gray-300 p-2">
+              <select
+                className="mt-1 block w-full rounded-md border border-gray-300 p-2"
+                value={managerFilter}
+                onChange={(e) => setManagerFilter(e.target.value)}
+              >
                 <option value="">- Select -</option>
                 {managers && managers.length > 0 ? (
                   managers.map((manager) => (
@@ -174,10 +237,6 @@ const EmployeeListView = () => {
               </select>
             </div>
           </div>
-          <button className="mt-4 flex items-center rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
-            <Filter size={18} className="mr-2" />
-            <span>Filter</span>
-          </button>
         </div>
 
         {/* Employee Table */}
@@ -197,7 +256,7 @@ const EmployeeListView = () => {
                 <option value={5}>5</option>
                 <option value={10}>10</option>
                 <option value={15}>15</option>
-                <option value={employees.length}>All</option>
+                <option value={filteredEmployees.length}>All</option>
               </select>
             </div>
             <div className="flex items-center">
@@ -205,10 +264,9 @@ const EmployeeListView = () => {
                 type="text"
                 placeholder="Search"
                 className="rounded-l-md border border-gray-300 p-2"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <button className="rounded-r-md border border-l-0 border-gray-300 bg-gray-100 p-2">
-                <Search size={20} />
-              </button>
             </div>
           </div>
 
