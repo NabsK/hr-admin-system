@@ -28,7 +28,22 @@ const EmployeeCreate = () => {
     departmentIds: [],
   });
 
-  const [managers, setManagers] = useState([]);
+  const {
+    data: managers,
+    error: managerError,
+    isLoading: managerLoading,
+  } = api.employee.getAllManagers.useQuery(undefined, {
+    enabled: status === "authenticated",
+    onError: (error) => {
+      console.error("Error fetching managers:", error);
+    },
+  });
+
+  useEffect(() => {
+    if (managers) {
+      console.log("Received managers data:", managers);
+    }
+  }, [managers]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -167,8 +182,15 @@ const EmployeeCreate = () => {
               className="w-full rounded-md border border-gray-300 p-2"
             >
               <option value="">- Select -</option>
-              <option value="2">- Bob -</option>
-              <option value="3">- Steve -</option>
+              {managers && managers.length > 0 ? (
+                managers.map((manager) => (
+                  <option key={manager.id} value={manager.id}>
+                    {manager.firstName} {manager.lastName}
+                  </option>
+                ))
+              ) : (
+                <option disabled>Loading managers...</option>
+              )}
             </select>
           </div>
 
@@ -198,7 +220,7 @@ const EmployeeCreate = () => {
             </button>
             <button
               type="button"
-              onClick={() => router.push("/employees")}
+              onClick={() => router.push("/employees/EmployeeList")}
               className="rounded bg-gray-300 px-4 py-2 font-bold text-gray-700 hover:bg-gray-400"
             >
               Cancel

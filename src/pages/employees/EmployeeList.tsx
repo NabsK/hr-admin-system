@@ -33,16 +33,26 @@ const EmployeeListView = () => {
   useEffect(() => {
     if (data) {
       console.log("Received employee data:", data);
-      const convertedData = data.map((employee) => ({
-        ...employee,
-        id: employee.id,
-        manager: employee.manager
-          ? { ...employee.manager, id: employee.manager.id.toString() }
-          : null,
-      }));
-      setEmployees(convertedData);
+      setEmployees(data);
     }
   }, [data]);
+
+  const {
+    data: managers,
+    error: managerError,
+    isLoading: managerLoading,
+  } = api.employee.getAllManagers.useQuery(undefined, {
+    enabled: status === "authenticated",
+    onError: (error) => {
+      console.error("Error fetching managers:", error);
+    },
+  });
+
+  useEffect(() => {
+    if (managers) {
+      console.log("Received managers data:", managers);
+    }
+  }, [managers]);
 
   const toggleStatus = api.employee.toggleActivationStatus.useMutation({
     onSuccess: (data, variables) => {
@@ -70,6 +80,11 @@ const EmployeeListView = () => {
     } catch (error) {
       console.error("Failed to toggle status:", error);
     }
+  };
+
+  const findManagerName = (managerId: number | null) => {
+    const manager = managers?.find((mgr) => mgr.id === managerId);
+    return manager ? `${manager.firstName} ${manager.lastName}` : "N/A";
   };
 
   if (status === "loading" || isLoading) return <p>Loading...</p>;
@@ -227,7 +242,7 @@ const EmployeeListView = () => {
                       {employee.email}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm">
-                      {employee.manager?.firstName} {employee.manager?.lastName}
+                      {findManagerName(employee.managerId)}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm">
                       <span

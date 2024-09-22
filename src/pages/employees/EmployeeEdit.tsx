@@ -26,6 +26,23 @@ const EmployeeCreateEdit = () => {
     }
   }, [status, router]);
 
+  const {
+    data: managers,
+    error: managerError,
+    isLoading: managerLoading,
+  } = api.employee.getAllManagers.useQuery(undefined, {
+    enabled: status === "authenticated",
+    onError: (error) => {
+      console.error("Error fetching managers:", error);
+    },
+  });
+
+  useEffect(() => {
+    if (managers) {
+      console.log("Received managers data:", managers);
+    }
+  }, [managers]);
+
   const { data: employeeData, isLoading: isEmployeeLoading } =
     api.employee.getById.useQuery(
       { id: parseInt(id as string) },
@@ -159,12 +176,21 @@ const EmployeeCreateEdit = () => {
             <select
               id="managerId"
               name="managerId"
-              value={employee.managerId}
+              value={employee.managerId ?? ""}
               onChange={handleInputChange}
               required
               className="w-full rounded-md border border-gray-300 p-2"
             >
               <option value="">- Select -</option>
+              {managers && managers.length > 0 ? (
+                managers.map((manager) => (
+                  <option key={manager.id} value={manager.id}>
+                    {manager.firstName} {manager.lastName}
+                  </option>
+                ))
+              ) : (
+                <option disabled>Loading managers...</option>
+              )}
             </select>
           </div>
 

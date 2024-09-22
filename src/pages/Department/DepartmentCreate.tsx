@@ -92,7 +92,7 @@ const DepartmentCreate = () => {
             </button>
             <button
               type="button"
-              onClick={() => router.push("/departments")}
+              onClick={() => router.push("/employees/EmployeeList")}
               className="rounded bg-gray-300 px-4 py-2 font-bold text-gray-700 hover:bg-gray-400"
             >
               Cancel
