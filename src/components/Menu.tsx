@@ -66,13 +66,13 @@ const Menu = () => {
         <div className="mt-auto pt-4">
           <button
             onClick={handleSignOut}
-            className="w-full rounded-md bg-transparent py-2 text-red-600 transition-colors hover:text-white"
+            className="w-full rounded-md bg-transparent py-2 text-red-600 transition-colors hover:scale-105"
           >
             Sign Out
           </button>
         </div>
       </div>
-      in tail
+
       {/* Overlay */}
       {isMenuOpen && (
         <div
