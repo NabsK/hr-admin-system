@@ -22,6 +22,23 @@ const DepartmentEdit = () => {
     }
   }, [status, router]);
 
+  const {
+    data: managers,
+    error: managerError,
+    isLoading: managerLoading,
+  } = api.employee.getAllManagers.useQuery(undefined, {
+    enabled: status === "authenticated",
+    onError: (error) => {
+      console.error("Error fetching managers:", error);
+    },
+  });
+
+  useEffect(() => {
+    if (managers) {
+      console.log("Received managers data:", managers);
+    }
+  }, [managers]);
+
   const { data: departmentData, isLoading: isDepartmentLoading } =
     api.department.getById.useQuery(
       { id: parseInt(id as string) },
@@ -38,7 +55,7 @@ const DepartmentEdit = () => {
     }
   }, [departmentData]);
 
-  console.log(department);
+  // console.log(department);
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
@@ -95,11 +112,21 @@ const DepartmentEdit = () => {
             <select
               id="managerId"
               name="managerId"
+              value={department.managerId ?? ""}
               onChange={handleInputChange}
               required
               className="w-full rounded-md border border-gray-300 p-2"
             >
               <option value="">- Select -</option>
+              {managers && managers.length > 0 ? (
+                managers.map((manager) => (
+                  <option key={manager.id} value={manager.id}>
+                    {manager.firstName} {manager.lastName}
+                  </option>
+                ))
+              ) : (
+                <option disabled>Loading managers...</option>
+              )}
             </select>
           </div>
 

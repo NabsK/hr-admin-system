@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 import { api } from "~/utils/api";
 import { Employee } from "~/types/employee";
 import Menu from "~/components/Menu";
-import { Edit } from "lucide-react";
+import { Edit, Filter, Search } from "lucide-react";
 import Link from "next/link";
 
 const EmployeeListView = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -87,10 +89,25 @@ const EmployeeListView = () => {
     return manager ? `${manager.firstName} ${manager.lastName}` : "N/A";
   };
 
+  const handlePerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setPerPage(Number(e.target.value));
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
+
+  const indexOfLastEmployee = currentPage * perPage;
+  const indexOfFirstEmployee = indexOfLastEmployee - perPage;
+  const currentEmployees = employees.slice(
+    indexOfFirstEmployee,
+    indexOfLastEmployee,
+  );
+
+  const totalPages = Math.ceil(employees.length / perPage);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
   if (status === "loading" || isLoading) return <p>Loading...</p>;
   if (error) return <p>Error fetching employees: {error.message}</p>;
 
-  // Check if the user is a Super User
   const isSuperUser = session?.user?.role === 0;
 
   return (
@@ -128,24 +145,22 @@ const EmployeeListView = () => {
             <div>
               <label className="block text-sm font-medium">Manager</label>
               <select className="mt-1 block w-full rounded-md border border-gray-300 p-2">
-                <option>- Select -</option>
+                <option value="">- Select -</option>
+                {managers && managers.length > 0 ? (
+                  managers.map((manager) => (
+                    <option key={manager.id} value={manager.id}>
+                      {manager.firstName} {manager.lastName}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading managers...</option>
+                )}
               </select>
             </div>
           </div>
           <button className="mt-4 flex items-center rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
-            <span className="mr-2">Filter</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-.293.707l-5 5a1 1 0 01-.707.293H7a1 1 0 01-.707-.293l-5-5A1 1 0 011 6V4z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <Filter size={18} className="mr-2" />
+            <span>Filter</span>
           </button>
         </div>
 
@@ -160,16 +175,26 @@ const EmployeeListView = () => {
               <select
                 id="perPage"
                 className="ml-2 rounded-md border border-gray-300 p-2"
+                value={perPage}
+                onChange={handlePerPageChange}
               >
-                <option>10 / 20 / 50 / 100 / All</option>
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={employees.length}>All</option>
               </select>
             </div>
-            <div>
+            <div className="flex items-center">
               <input
                 type="text"
-                placeholder="search"
-                className="rounded-md border border-gray-300 p-2"
+                placeholder="Search"
+                // value={searchTerm}
+                // onChange={handleSearchChange}
+                className="rounded-l-md border border-gray-300 p-2"
               />
+              <button className="rounded-r-md border border-l-0 border-gray-300 bg-gray-100 p-2">
+                <Search size={20} />
+              </button>
             </div>
           </div>
 
@@ -201,8 +226,8 @@ const EmployeeListView = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
-              {employees.length > 0 ? (
-                employees.map((employee) => (
+              {currentEmployees.length > 0 ? (
+                currentEmployees.map((employee) => (
                   <tr key={employee.id}>
                     <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
                       <div className="flex items-center space-x-4">
@@ -266,25 +291,22 @@ const EmployeeListView = () => {
           </table>
 
           {/* Pagination */}
-          <div className="mt-4 text-sm text-gray-600">
-            <a href="#" className="text-blue-600 hover:underline">
-              1
-            </a>
-            <a href="#" className="ml-2 text-blue-600 hover:underline">
-              2
-            </a>
-            <a href="#" className="ml-2 text-blue-600 hover:underline">
-              3
-            </a>
-            <a href="#" className="ml-2 text-blue-600 hover:underline">
-              4
-            </a>
-            <a href="#" className="ml-2 text-blue-600 hover:underline">
-              5
-            </a>
-            <a href="#" className="ml-2 text-blue-600 hover:underline">
-              6
-            </a>
+          <div className="mt-4 flex justify-center">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+              (number) => (
+                <button
+                  key={number}
+                  onClick={() => paginate(number)}
+                  className={`mx-1 px-3 py-1 ${
+                    currentPage === number
+                      ? "bg-blue-500 text-white"
+                      : "bg-white text-blue-500 hover:bg-blue-100"
+                  } rounded border`}
+                >
+                  {number}
+                </button>
+              ),
+            )}
           </div>
         </div>
       </div>

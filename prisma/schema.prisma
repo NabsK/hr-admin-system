@@ -24,6 +24,7 @@ model Department {
   id             Int       @id @default(autoincrement())
   name           String
   status         String
+  managerId      Int?
   employees      EmployeeDepartment[]
 }
 

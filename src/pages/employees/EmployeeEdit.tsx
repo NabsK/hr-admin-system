@@ -71,21 +71,40 @@ const EmployeeCreateEdit = () => {
     setEmployee((prev) => ({ ...prev, [name]: value }));
   };
 
+  const { mutateAsync: updateEmployee } = api.employee.update.useMutation();
+  const { mutateAsync: createEmployee } = api.employee.create.useMutation();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       if (isEditing) {
-        await api.employee.update.mutate({ id: id as string, ...employee });
+        // Updating the existing employee
+        await updateEmployee({
+          id: parseInt(id as string, 10), // Convert string ID to number
+          firstName: employee.firstName,
+          lastName: employee.lastName,
+          telephone: employee.telephone,
+          email: employee.email,
+          managerId: employee.managerId
+            ? parseInt(employee.managerId)
+            : undefined,
+          status: employee.status,
+        });
       } else {
-        await api.employee.create.mutate(employee);
+        // Creating a new employee
+        await createEmployee(employee);
       }
-      router.push("/employees");
+
+      // Redirect to the employee list after saving
+      router.push("/employees/EmployeeList");
     } catch (error) {
       console.error("Error saving employee:", error);
     }
   };
 
   if (status === "loading" || isEmployeeLoading) return <p>Loading...</p>;
+
+  const isSuperUser = session?.user?.role === 0;
 
   return (
     <div className="flex">
@@ -194,7 +213,7 @@ const EmployeeCreateEdit = () => {
             </select>
           </div>
 
-          {isEditing && (
+          {isEditing && isSuperUser && (
             <div className="mb-4">
               <label htmlFor="status" className="mb-2 block font-bold">
                 *Status

@@ -5,12 +5,19 @@ import { api } from "~/utils/api";
 import { Department } from "~/types/department";
 import Menu from "~/components/Menu";
 import Link from "next/link";
-import { Edit } from "lucide-react";
+import { Edit, Filter, Search } from "lucide-react";
 
 const DepartmentListView = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [filteredDepartments, setFilteredDepartments] = useState<Department[]>(
+    [],
+  );
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -30,23 +37,43 @@ const DepartmentListView = () => {
       const convertedData = data.map((department) => ({
         ...department,
         id: department.id.toString(),
-        manager: department.manager
-          ? { ...department.manager, id: department.manager.id.toString() }
-          : null,
       }));
       setDepartments(convertedData);
+      setFilteredDepartments(convertedData);
     }
   }, [data]);
+  console.log(departments);
+
+  const {
+    data: managers,
+    error: managerError,
+    isLoading: managerLoading,
+  } = api.employee.getAllManagers.useQuery(undefined, {
+    enabled: status === "authenticated",
+    onError: (error) => {
+      console.error("Error fetching managers:", error);
+    },
+  });
+
+  useEffect(() => {
+    if (managers) {
+      console.log("Received managers data:", managers);
+    }
+  }, [managers]);
+  //console.log(managers);
 
   const toggleStatus = api.department.toggleActivationStatus.useMutation({
-    onSuccess: (data, variables) => {
-      setDepartments((prevDepartments) =>
-        prevDepartments.map((department) =>
+    onSuccess: (updatedDepartment, variables) => {
+      const updatedDepartments = departments.map((department) =>
+        department.id === variables.id.toString()
+          ? { ...department, status: updatedDepartment.status }
+          : department,
+      );
+      setDepartments(updatedDepartments);
+      setFilteredDepartments((prev) =>
+        prev.map((department) =>
           department.id === variables.id.toString()
-            ? {
-                ...department,
-                status: variables.action === "Activate" ? "1" : "0",
-              }
+            ? { ...department, status: updatedDepartment.status }
             : department,
         ),
       );
@@ -68,10 +95,61 @@ const DepartmentListView = () => {
     }
   };
 
+  const handlePerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setPerPage(value === "all" ? filteredDepartments.length : Number(value));
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleStatusFilterChange = (
+    e: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
+    setStatusFilter(e.target.value);
+  };
+
+  const applyFilters = () => {
+    let filtered = departments;
+
+    if (searchTerm) {
+      filtered = filtered.filter((department) =>
+        department.name.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
+    }
+
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(
+        (department) => department.status === statusFilter,
+      );
+    }
+
+    setFilteredDepartments(filtered);
+    setCurrentPage(1);
+  };
+
+  const indexOfLastDepartment = currentPage * perPage;
+  const indexOfFirstDepartment = indexOfLastDepartment - perPage;
+  const currentDepartments = filteredDepartments.slice(
+    indexOfFirstDepartment,
+    indexOfLastDepartment,
+  );
+
+  const totalPages = Math.ceil(filteredDepartments.length / perPage);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
   if (status === "loading" || isLoading) return <p>Loading...</p>;
   if (error) return <p>Error fetching departments: {error.message}</p>;
 
   const isSuperUser = session?.user?.role === 0;
+
+  const findManagerName = (managerId: number | null) => {
+    const manager = managers?.find((mgr) => mgr.id === managerId);
+    return manager ? `${manager.firstName} ${manager.lastName}` : "N/A";
+  };
 
   return (
     <div className="flex">
@@ -95,25 +173,23 @@ const DepartmentListView = () => {
           <div className="mt-4 flex items-center">
             <div className="w-full">
               <label className="block text-sm font-medium">Status</label>
-              <select className="mt-1 block w-full rounded-md border border-gray-300 p-2">
-                <option>Active Only / (All) / Deactive Only</option>
+              <select
+                className="mt-1 block w-full rounded-md border border-gray-300 p-2"
+                value={statusFilter}
+                onChange={handleStatusFilterChange}
+              >
+                <option value="all">All</option>
+                <option value="1">Active Only</option>
+                <option value="0">Inactive Only</option>
               </select>
             </div>
           </div>
-          <button className="mt-4 flex items-center rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
-            <span className="mr-2">Filter</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-.293.707l-5 5a1 1 0 01-.707.293H7a1 1 0 01-.707-.293l-5-5A1 1 0 011 6V4z"
-                clipRule="evenodd"
-              />
-            </svg>
+          <button
+            className="mt-4 flex items-center rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+            onClick={applyFilters}
+          >
+            <Filter size={18} className="mr-2" />
+            <span>Filter</span>
           </button>
         </div>
 
@@ -128,16 +204,29 @@ const DepartmentListView = () => {
               <select
                 id="perPage"
                 className="ml-2 rounded-md border border-gray-300 p-2"
+                value={perPage === filteredDepartments.length ? "all" : perPage}
+                onChange={handlePerPageChange}
               >
-                <option>10 / 20 / 50 / 100 / All</option>
+                <option value={2}>2</option>
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value="all">All</option>
               </select>
             </div>
-            <div>
+            <div className="flex items-center">
               <input
                 type="text"
-                placeholder="search"
-                className="rounded-md border border-gray-300 p-2"
+                placeholder="Search"
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="rounded-l-md border border-gray-300 p-2"
               />
+              <button
+                className="rounded-r-md border border-l-0 border-gray-300 bg-gray-100 p-2"
+                onClick={applyFilters}
+              >
+                <Search size={20} />
+              </button>
             </div>
           </div>
 
@@ -160,8 +249,8 @@ const DepartmentListView = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
-              {departments.length > 0 ? (
-                departments.map((department) => (
+              {currentDepartments.length > 0 ? (
+                currentDepartments.map((department) => (
                   <tr key={department.id}>
                     <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
                       <div className="flex items-center space-x-4">
@@ -197,8 +286,7 @@ const DepartmentListView = () => {
                       {department.name}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm">
-                      {department.manager?.firstName}{" "}
-                      {department.manager?.lastName}
+                      {findManagerName(department.managerId)}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm">
                       <span
@@ -224,30 +312,26 @@ const DepartmentListView = () => {
           </table>
 
           {/* Pagination */}
-          <div className="mt-4 text-sm text-gray-600">
-            <a href="#" className="text-blue-600 hover:underline">
-              1
-            </a>
-            <a href="#" className="ml-2 text-blue-600 hover:underline">
-              2
-            </a>
-            <a href="#" className="ml-2 text-blue-600 hover:underline">
-              3
-            </a>
-            <a href="#" className="ml-2 text-blue-600 hover:underline">
-              4
-            </a>
-            <a href="#" className="ml-2 text-blue-600 hover:underline">
-              5
-            </a>
-            <a href="#" className="ml-2 text-blue-600 hover:underline">
-              6
-            </a>
+          <div className="mt-4 flex justify-center">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+              (number) => (
+                <button
+                  key={number}
+                  onClick={() => paginate(number)}
+                  className={`mx-1 px-3 py-1 ${
+                    currentPage === number
+                      ? "bg-blue-500 text-white"
+                      : "bg-white text-blue-500 hover:bg-blue-100"
+                  } rounded border`}
+                >
+                  {number}
+                </button>
+              ),
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 };
-
 export default DepartmentListView;

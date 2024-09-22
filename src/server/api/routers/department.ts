@@ -12,6 +12,7 @@ export const departmentRouter = createTRPCRouter({
       z.object({
         name: z.string(),
         status: z.string(),
+        managerId: z.number().optional(), // Add managerId in input
         employeeIds: z.array(z.number()).optional(),
       }),
     )
@@ -25,10 +26,17 @@ export const departmentRouter = createTRPCRouter({
 
       const department = await ctx.prisma.department.create({
         data: {
-          ...input,
+          name: input.name,
+          status: input.status,
+          managerId: input.managerId, // Set managerId
           employees: input.employeeIds
             ? {
-                connect: input.employeeIds.map((id) => ({ id })),
+                connect: input.employeeIds.map((id) => ({
+                  employeeId_departmentId: {
+                    employeeId: id,
+                    departmentId: department.id,
+                  }, // Updated to correct relation
+                })),
               }
             : undefined,
         },
@@ -43,6 +51,7 @@ export const departmentRouter = createTRPCRouter({
         id: z.number(),
         name: z.string().optional(),
         status: z.string().optional(),
+        managerId: z.number().optional(), // Add managerId in input
         employeeIds: z.array(z.number()).optional(),
       }),
     )
@@ -57,10 +66,17 @@ export const departmentRouter = createTRPCRouter({
       const updatedDepartment = await ctx.prisma.department.update({
         where: { id: input.id },
         data: {
-          ...input,
+          name: input.name,
+          status: input.status,
+          managerId: input.managerId, // Update managerId
           employees: input.employeeIds
             ? {
-                set: input.employeeIds.map((id) => ({ id })),
+                set: input.employeeIds.map((id) => ({
+                  employeeId_departmentId: {
+                    employeeId: id,
+                    departmentId: input.id,
+                  }, // Updated to correct relation
+                })),
               }
             : undefined,
         },
@@ -72,7 +88,9 @@ export const departmentRouter = createTRPCRouter({
   getAll: protectedProcedure.query(async ({ ctx }) => {
     // All authenticated users can view departments
     return ctx.prisma.department.findMany({
-      include: { employees: true },
+      include: {
+        employees: true,
+      },
     });
   }),
 
@@ -95,7 +113,7 @@ export const departmentRouter = createTRPCRouter({
         });
       }
 
-      // Only super users can change the activation status of employees
+      // Only super users can change the activation status of departments
       if (ctx.user.role !== 0) {
         throw new TRPCError({
           code: "FORBIDDEN",
@@ -106,14 +124,14 @@ export const departmentRouter = createTRPCRouter({
       // Determine the new status based on the action
       const newStatus = input.action === "Activate" ? "1" : "0";
 
-      const updatedEmployee = await ctx.prisma.department.update({
+      const updatedDepartment = await ctx.prisma.department.update({
         where: { id: input.id },
         data: {
           status: newStatus, // Set status based on the input action
         },
       });
 
-      return updatedEmployee;
+      return updatedDepartment;
     }),
 
   getById: protectedProcedure

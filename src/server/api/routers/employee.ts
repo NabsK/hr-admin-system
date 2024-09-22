@@ -68,7 +68,7 @@ export const employeeRouter = createTRPCRouter({
       }
 
       const isOwnProfile = ctx.user.id === employee.id;
-      const canEditOthers = ctx.user.role === 2;
+      const canEditOthers = ctx.user.role === 0 || ctx.user.role === 1;
 
       if (!isOwnProfile && !canEditOthers) {
         throw new TRPCError({
