@@ -193,6 +193,7 @@ const EmployeeCreateEdit = () => {
               onChange={handleInputChange}
               required
               className="w-full rounded-md border border-gray-300 p-2"
+              disabled={!isSuperUser}
             >
               <option value="">- Select -</option>
               {managers && managers.length > 0 ? (

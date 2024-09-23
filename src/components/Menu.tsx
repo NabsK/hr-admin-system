@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Menu as MenuIcon, X, LogOut } from "lucide-react";
+import { Menu as MenuIcon, X, LogOut, Home } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
+import Link from "next/link";
 
 const Menu = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -37,39 +38,48 @@ const Menu = () => {
         </h2>
         <ul className="space-y-6">
           <li>
-            <a
+            <Link
+              href="/"
+              className="flex items-center text-lg font-medium transition-colors duration-150 hover:text-gray-300"
+            >
+              <Home size={20} className="mr-2" />
+              Home
+            </Link>
+          </li>
+          <li>
+            <Link
               href="/employees/EmployeeList"
               className="block text-lg font-medium transition-colors duration-150 hover:text-gray-300"
             >
               Employee List
-            </a>
+            </Link>
           </li>
           {isSuperUser && (
             <li>
-              <a
+              <Link
                 href="/employees/EmployeeCreate"
                 className="block text-lg font-medium transition-colors duration-150 hover:text-gray-300"
               >
                 Employee Create
-              </a>
+              </Link>
             </li>
           )}
           <li>
-            <a
+            <Link
               href="/Department/DepartmentList"
               className="block text-lg font-medium transition-colors duration-150 hover:text-gray-300"
             >
               Department List
-            </a>
+            </Link>
           </li>
           {isSuperUser && (
             <li>
-              <a
+              <Link
                 href="/Department/DepartmentCreate"
                 className="block text-lg font-medium transition-colors duration-150 hover:text-gray-300"
               >
                 Department Create
-              </a>
+              </Link>
             </li>
           )}
         </ul>
