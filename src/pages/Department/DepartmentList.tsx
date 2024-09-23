@@ -144,7 +144,7 @@ const DepartmentListView = () => {
 
   const isSuperUser = session?.user?.role === 0;
   const isManager = session?.user?.role === 1;
-  const canEditDepartments = isSuperUser || isManager;
+  const canEditDepartments = isSuperUser;
 
   const findManagerName = (managerId: number | null) => {
     const manager = managers?.find((mgr) => mgr.id === managerId);
