@@ -81,7 +81,7 @@ const EmployeeCreateEdit = () => {
       if (isEditing) {
         // Updating the existing employee
         await updateEmployee({
-          id: parseInt(id as string, 10), // Convert string ID to number
+          id: parseInt(id as string, 10),
           firstName: employee.firstName,
           lastName: employee.lastName,
           telephone: employee.telephone,
@@ -96,7 +96,6 @@ const EmployeeCreateEdit = () => {
         await createEmployee(employee);
       }
 
-      // Redirect to the employee list after saving
       router.push("/employees/EmployeeList");
     } catch (error) {
       console.error("Error saving employee:", error);

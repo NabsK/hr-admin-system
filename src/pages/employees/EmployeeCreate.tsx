@@ -95,8 +95,6 @@ const EmployeeCreate = () => {
         departments: employee.departments,
         ...(employee.managerId !== null && { managerId: employee.managerId }), // Include managerId only if it's not null
       });
-
-      // Save employee to the database
     } catch (error) {
       console.error("Failed to create employee:", error);
     }

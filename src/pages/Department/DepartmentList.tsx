@@ -42,7 +42,6 @@ const DepartmentListView = () => {
       setFilteredDepartments(convertedData);
     }
   }, [data]);
-  //console.log(departments);
 
   const {
     data: managers,
@@ -60,7 +59,6 @@ const DepartmentListView = () => {
       console.log("Received managers data:", managers);
     }
   }, [managers]);
-  //console.log(managers);
 
   const toggleStatus = api.department.toggleActivationStatus.useMutation({
     onSuccess: (updatedDepartment, variables) => {
