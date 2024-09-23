@@ -37,7 +37,7 @@ export default function EmployeeListView() {
           name="description"
           content="Manage employee details and departments"
         />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.png" type="image/png" />
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-blue-600 to-gray-900 text-white">
         <div className="container max-w-4xl px-6 py-12">
