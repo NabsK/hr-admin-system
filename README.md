@@ -1,29 +1,57 @@
-# Create T3 App
+# HR Administration System
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+This project is a Human Resources Administration System built with the T3 stack.
 
-## What's next? How do I make an app with this?
+## Getting Started
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+Follow these steps to set up the project locally:
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+1. **Clone the repository**
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+   ```bash
+   git clone https://github.com/NabsK/hr-admin-system.git
+   ```
 
-## Learn More
+   Alternatively, download the ZIP file and extract the project.
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+2. **Open the project**
+   Open the folder in your preferred IDE (e.g., Visual Studio Code).
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+3. **Set up environment variables**
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+   - Rename the `.env.example` file to `.env`.
+   - Remove the DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET provider from the `.env` file.
+   - Add the following line to your `.env` file:
+     ```
+     NEXTAUTH_SECRET="vN/xpeBVrbCZOilgkwyntHU574p3EEHvVOih3geqMSg="
+     ```
 
-## How do I deploy this?
+4. **Install dependencies**
+   Open a terminal in your project directory and run:
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+   ```bash
+   npm install
+   ```
+
+5. **Run database migrations**
+
+   ```bash
+   npx prisma migrate dev
+   ```
+
+   Ensure that all migrations have been applied successfully.
+
+6. **Start the development server**
+
+   ```bash
+   npm run dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
+
+7. **Optional: Open Prisma Studio**
+   To view and edit the database using a visual editor, open an additional terminal and run:
+   ```bash
+   npx prisma studio
+   ```
+   This will launch Prisma Studio at [http://localhost:5555](http://localhost:5555).
