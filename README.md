@@ -21,10 +21,16 @@ Follow these steps to set up the project locally:
 
    - Rename the `.env.example` file to `.env`.
    - Remove the DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET provider from the `.env` file.
-   - Add the following line to your `.env` file:
+   - Edit the following line in your `.env` file:
      ```
      NEXTAUTH_SECRET="vN/xpeBVrbCZOilgkwyntHU574p3EEHvVOih3geqMSg="
      ```
+   - Please make sure your file includes these:
+
+   ```
+   DATABASE_URL="file:./db.sqlite"
+   NEXTAUTH_URL="http://localhost:3000"
+   ```
 
 4. **Install dependencies**
    Open a terminal in your project directory and run:
